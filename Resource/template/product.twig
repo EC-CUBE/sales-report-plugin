@@ -21,7 +21,16 @@
     </script>
 {% endblock %}
 
-{% block option %}{% endblock %}
+{% block option %}
+
+
+<label for='csvCheck'>
+    <input type='checkbox' name='csv' id='csvCheck'>
+    ←を押してCSVを出力するには→を押
+    </label>
+    <a id="btn-csv" class="btn btn-default">CSVを出す</a>
+
+{% endblock %}
 
 {% block table %}
     {% if app.request.method == 'POST' %}

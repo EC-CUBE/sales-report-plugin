@@ -65,6 +65,11 @@
                 $("#{{ form.term_type.vars.id }}").val('term');
                 document.form1.submit();
             });
+            $("#btn-csv").on("click", function () {
+              $("#{{ form.term_type.vars.id }}").val('monthly');
+              document.form1.csv='./csv';
+              document.form1.submit();
+            });
         });
     </script>
 {% endblock javascript %}
