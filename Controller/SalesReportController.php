@@ -13,9 +13,6 @@ namespace Plugin\SalesReport\Controller;
 
 use Eccube\Application;
 use Symfony\Component\HttpFoundation\Request;
-use Eccube\Common\Constant;
-use Eccube\Controller\AbstractController;
-use Eccube\Entity\Master\CsvType;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SalesReportController
@@ -66,21 +63,10 @@ class SalesReportController
 
         $template = is_null($reportType) ? 'term' : $reportType;
 
-
-
-
-        //csvがonだったらCSVを出す処理にする
+        //csvがonの場合にCSVを出力
         if($request->get('csv')){
-          //        echo $request;
-          //        echo '::::',$request->query->get('csv'), "::::";
-          //        echo $content = $request->getContent();
-          //        echo $request->get('csv');
           $this->exportShipping($app, $request, $data['raw']);
           return "";
-
-
-          //var_dump($data['raw']);
-
         }
 
         return $app->render(
@@ -108,6 +94,7 @@ class SalesReportController
       $em = $app['orm.em'];
       $em->getConfiguration()->setSQLLogger(null);
 
+      #:TODO csvEsportServiceを使って書き直すべき？
       #$csvExportService = $app['eccube.service.csv.export'];
       #$csvExportService->fopen();
       $response = new StreamedResponse();
