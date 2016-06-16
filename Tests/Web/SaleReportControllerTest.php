@@ -1,9 +1,12 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: lqdung
- * Date: 6/8/2016
- * Time: 11:34 AM
+ * This file is part of EC-CUBE
+ *
+ * Copyright(c) 2000-2015 LOCKON CO.,LTD. All Rights Reserved.
+ * http://www.lockon.co.jp/
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Plugin\SalesReport\Tests\Web;
@@ -18,13 +21,13 @@ class SaleReportControllerTest extends SaleReportCommon
      */
     public function testRouting($type, $expected)
     {
-        $crawler = $this->client->request('GET', $this->app->url('admin_sales_report'.$type));
+        $crawler = $this->client->request('GET', $this->app->url('admin_sales_report' . $type));
 
         $this->assertTrue($this->client->getResponse()->isSuccessful());
 
         $this->assertContains($expected, $crawler->html());
     }
-    
+
     public function dataRoutingProvider()
     {
         return array(
@@ -63,7 +66,7 @@ class SaleReportControllerTest extends SaleReportCommon
         }
 
         $crawler = $this->client->request('POST',
-            $this->app->url('admin_sales_report'.$type),
+            $this->app->url('admin_sales_report' . $type),
             array(
                 'sales_report' => $arrSearch
             )
