@@ -1,8 +1,11 @@
 <?php
+
 /*
- * This file is part of the Sales Report plugin
+ * This file is part of EC-CUBE
  *
- * Copyright (C) 2016 LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ *
+ * http://www.lockon.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,6 +16,8 @@ namespace Plugin\SalesReport\Service;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Eccube\Application;
+use Eccube\Common\EccubeConfig;
+use Eccube\Entity\Master\OrderStatus;
 use Eccube\Util\EntityUtil;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\NoResultException;
@@ -25,7 +30,7 @@ class SalesReportService
     /**
      * @var Application
      */
-    private $app;
+    private $eccubeConfig;
 
     /**
      * @var string
@@ -50,17 +55,40 @@ class SalesReportService
     /**
      * @var array
      */
-    private $productCsvHeader = array('商品コード', '商品名', '購入件数（件）', '数量（個）', '金額（円）');
+    private $productCsvHeader = [
+        'sales_report.admin.productCsvHeader.001',
+        'sales_report.admin.productCsvHeader.002',
+        'sales_report.admin.productCsvHeader.003',
+        'sales_report.admin.productCsvHeader.004',
+        'sales_report.admin.productCsvHeader.005',
+    ];
 
     /**
      * @var array
      */
-    private $termCsvHeader = array('期間', '購入件数', '男性', '女性', '不明', '男性(会員)', '男性(非会員)', '女性(会員)', '女性(非会員)', '購入合計(円)', '購入平均(円)');
+    private $termCsvHeader = [
+        'sales_report.admin.termCsvHeader.001',
+        'sales_report.admin.termCsvHeader.002',
+        'sales_report.admin.termCsvHeader.003',
+        'sales_report.admin.termCsvHeader.004',
+        'sales_report.admin.termCsvHeader.005',
+        'sales_report.admin.termCsvHeader.006',
+        'sales_report.admin.termCsvHeader.007',
+        'sales_report.admin.termCsvHeader.008',
+        'sales_report.admin.termCsvHeader.009',
+        'sales_report.admin.termCsvHeader.010',
+        'sales_report.admin.termCsvHeader.011',
+    ];
 
     /**
      * @var array
      */
-    private $ageCsvHeader = array('年代', '購入件数(件)', '購入合計(円)', '購入平均(円)');
+    private $ageCsvHeader = [
+        'sales_report.admin.ageCsvHeader.001',
+        'sales_report.admin.ageCsvHeader.002',
+        'sales_report.admin.ageCsvHeader.003',
+        'sales_report.admin.ageCsvHeader.004',
+        ];
 
     /**
      * @var int
@@ -72,14 +100,19 @@ class SalesReportService
      */
     const FEMALE = 2;
 
+    /** @var EntityManager */
+    protected $entityManager;
+
     /**
      * SalesReportService constructor.
      *
-     * @param Application $app
+     * @param EntityManager $entityManager
+     * @param EccubeConfig $eccubeConfig
      */
-    public function __construct($app)
+    public function __construct(EntityManager $entityManager, EccubeConfig $eccubeConfig)
     {
-        $this->app = $app;
+        $this->entityManager = $entityManager;
+        $this->eccubeConfig = $eccubeConfig;
     }
 
     /**
@@ -147,29 +180,26 @@ class SalesReportService
      */
     public function getData()
     {
-        $app = $this->app;
-
-        $excludes = array(
-            $app['config']['order_processing'],
-            $app['config']['order_cancel'],
-            $app['config']['order_pending'],
-        );
+        $excludes = [
+            OrderStatus::PROCESSING,
+            OrderStatus::CANCEL,
+            OrderStatus::PENDING,
+        ];
 
         /* @var $qb \Doctrine\ORM\QueryBuilder */
-        $qb = $app['orm.em']->createQueryBuilder();
+        $qb = $this->entityManager->createQueryBuilder();
         $qb
             ->select('o')
             ->from('Eccube\Entity\Order', 'o')
-            ->andWhere('o.del_flg = 0')
             ->andWhere('o.order_date >= :start')
-            ->andWhere('o.order_date <= :end')
+            ->andWhere('o.order_date < :end')
             ->andWhere('o.OrderStatus NOT IN (:excludes)')
             ->setParameter(':excludes', $excludes)
             ->setParameter(':start', $this->termStart)
             ->setParameter(':end', $this->termEnd);
 
-        log_info('SalesReport Plugin : search parameters ', array('From' => $this->termStart, 'To' => $this->termEnd));
-        $result = array();
+        log_info('SalesReport Plugin : search parameters ', ['From' => $this->termStart, 'To' => $this->termEnd]);
+        $result = [];
         try {
             $result = $qb->getQuery()->getResult();
         } catch (NoResultException $e) {
@@ -191,10 +221,10 @@ class SalesReportService
         try {
             $handle = fopen('php://output', 'w+');
             $headers = $this->productCsvHeader;
-            $headerRow = array();
+            $headerRow = [];
             //convert header to encoding
             foreach ($headers as $header) {
-                $headerRow[] = mb_convert_encoding($header, $encoding, 'UTF-8');
+                $headerRow[] = mb_convert_encoding(trans($header), $encoding, 'UTF-8');
             }
             fputcsv($handle, $headerRow, $separator);
             //convert data to encoding
@@ -202,11 +232,11 @@ class SalesReportService
                 $code = mb_convert_encoding($row['OrderDetail']->getProductCode(), $encoding, 'UTF-8');
                 $name = $row['OrderDetail']->getProductName().' '.$row['OrderDetail']->getClassCategoryName1().' '.$row['OrderDetail']->getClassCategoryName2();
                 $name = mb_convert_encoding($name, $encoding, 'UTF-8');
-                fputcsv($handle, array($code, $name, $row['time'], $row['quantity'], $row['total']), $separator);
+                fputcsv($handle, [$code, $name, $row['time'], $row['quantity'], $row['total']], $separator);
             }
             fclose($handle);
         } catch (\Exception $e) {
-            log_info('CSV product export exception', array($e->getMessage()));
+            log_info('CSV product export exception', [$e->getMessage()]);
         }
     }
 
@@ -222,10 +252,10 @@ class SalesReportService
         try {
             $handle = fopen('php://output', 'w+');
             $headers = $this->termCsvHeader;
-            $headerRow = array();
+            $headerRow = [];
             //convert header to encoding
             foreach ($headers as $header) {
-                $headerRow[] = mb_convert_encoding($header, $encoding, 'UTF-8');
+                $headerRow[] = mb_convert_encoding(trans($header), $encoding, 'UTF-8');
             }
             fputcsv($handle, $headerRow, $separator);
             foreach ($rows as $date => $row) {
@@ -234,11 +264,11 @@ class SalesReportService
                 } else {
                     $money = 0;
                 }
-                fputcsv($handle, array($date, $row['time'], $row['male'], $row['female'], $row['other'], $row['member_male'], $row['nonmember_male'], $row['member_female'], $row['nonmember_female'], $row['price'], $money), $separator);
+                fputcsv($handle, [$date, $row['time'], $row['male'], $row['female'], $row['other'], $row['member_male'], $row['nonmember_male'], $row['member_female'], $row['nonmember_female'], $row['price'], $money], $separator);
             }
             fclose($handle);
         } catch (\Exception $e) {
-            log_info('CSV term export exception', array($e->getMessage()));
+            log_info('CSV term export exception', [$e->getMessage()]);
         }
     }
 
@@ -254,10 +284,10 @@ class SalesReportService
         try {
             $handle = fopen('php://output', 'w+');
             $headers = $this->ageCsvHeader;
-            $headerRow = array();
+            $headerRow = [];
             //convert header to encoding
             foreach ($headers as $header) {
-                $headerRow[] = mb_convert_encoding($header, $encoding, 'UTF-8');
+                $headerRow[] = mb_convert_encoding(trans($header), $encoding, 'UTF-8');
             }
             fputcsv($handle, $headerRow, $separator);
             foreach ($rows as $age => $row) {
@@ -268,16 +298,16 @@ class SalesReportService
                 }
                 //convert from number to japanese.
                 if ($age == 999) {
-                    $age = '未回答';
+                    $age = trans('sales_report.admin.age.list.001');
                     $age = mb_convert_encoding($age, $encoding, 'UTF-8');
                 } else {
-                    $age = mb_convert_encoding($age.'代', $encoding, 'UTF-8');
+                    $age = mb_convert_encoding($age.trans('sales_report.admin.age.list.002'), $encoding, 'UTF-8');
                 }
-                fputcsv($handle, array($age, $row['time'], $row['total'], $money), $separator);
+                fputcsv($handle, [$age, $row['time'], $row['total'], $money], $separator);
             }
             fclose($handle);
         } catch (\Exception $e) {
-            log_info('CSV age export exception', array($e->getMessage()));
+            log_info('CSV age export exception', [$e->getMessage()]);
         }
     }
 
@@ -318,7 +348,7 @@ class SalesReportService
      */
     private function convert($data)
     {
-        $result = array();
+        $result = [];
         switch ($this->reportType) {
             case 'term':
                 $result = $this->convertByTerm($data);
@@ -341,12 +371,12 @@ class SalesReportService
      */
     private function formatUnit()
     {
-        $unit = array(
+        $unit = [
             'byDay' => 'Y-m-d',
             'byMonth' => 'Y-m',
             'byWeekDay' => 'D',
             'byHour' => 'H',
-        );
+        ];
 
         return $unit[$this->unit];
     }
@@ -384,7 +414,7 @@ class SalesReportService
      */
     private function getColor($index)
     {
-        $map = array(
+        $map = [
             '#F2594B',
             '#D17A45',
             '#FFAB48',
@@ -395,7 +425,7 @@ class SalesReportService
             '#63A69F',
             '#3F5765',
             '#685C79',
-        );
+        ];
         $colorIndex = $index % count($map);
 
         return $map[$colorIndex];
@@ -412,20 +442,20 @@ class SalesReportService
     {
         $start = new \DateTime($this->termStart);
         $end = new \DateTime($this->termEnd);
-        $raw = array();
-        $price = array();
+        $raw = [];
+        $price = [];
         $orderNumber = 0;
         $format = $this->formatUnit();
 
         // Sort date in week
         if ($this->unit == 'byWeekDay') {
-            $raw = array('Sun' => '', 'Mon' => '', 'Tue' => '', 'Wed' => '', 'Thu' => '', 'Fri' => '', 'Sat' => '');
+            $raw = ['Sun' => '', 'Mon' => '', 'Tue' => '', 'Wed' => '', 'Thu' => '', 'Fri' => '', 'Sat' => ''];
             $price = $raw;
         }
 
         for ($term = $start; $term < $end; $term = $term->modify('+ 1 Hour')) {
             $date = $term->format($format);
-            $raw[$date] = array(
+            $raw[$date] = [
                 'price' => 0,
                 'time' => 0,
                 'male' => 0,
@@ -435,14 +465,12 @@ class SalesReportService
                 'nonmember_male' => 0,
                 'member_female' => 0,
                 'nonmember_female' => 0,
-            );
+            ];
             $price[$date] = 0;
         }
 
-        /* @var $entityManager EntityManager */
-        $entityManager = $this->app['orm.em'];
-        $sql = 'Select o.customer_id From dtb_order o Where o.order_id = :order_id';
-        $stmt = $entityManager->getConnection()->prepare($sql);
+        $sql = 'Select o.customer_id From dtb_order o Where o.id = :order_id';
+        $stmt = $this->entityManager->getConnection()->prepare($sql);
         foreach ($data as $Order) {
             /* @var $Order \Eccube\Entity\Order */
             $orderDate = $Order
@@ -458,7 +486,7 @@ class SalesReportService
             if (EntityUtil::isNotEmpty($Sex)) {
                 $sex = $Order->getSex()->getId();
             } else {
-                $raw[$orderDate]['other'] += 1;
+                ++$raw[$orderDate]['other'];
             }
             $raw[$orderDate]['male'] += ($sex == self::MALE);
             $raw[$orderDate]['female'] += ($sex == self::FEMALE);
@@ -478,25 +506,25 @@ class SalesReportService
             ++$orderNumber;
         }
 
-        log_info('SalesReport Plugin : term report ', array('result count' => $orderNumber));
+        log_info('SalesReport Plugin : term report ', ['result count' => $orderNumber]);
         // Return null and not display in screen
         if ($orderNumber == 0) {
-            return array(
+            return [
                 'raw' => null,
                 'graph' => null,
-            );
+            ];
         }
 
-        $graph = array(
+        $graph = [
             'labels' => array_keys($price),
-            'datasets' => array(
-                'label' => '購入合計',
+            'datasets' => [
+                'label' => trans('sales_report.admin.list.label.012'),
                 'data' => array_values($price),
                 'lineTension' => 0.1,
                 'backgroundColor' => 'rgba(75,192,192,0.4)',
                 'borderColor' => 'rgba(75,192,192,1)',
                 'borderCapStyle' => 'butt',
-                'borderDash' => array(),
+                'borderDash' => [],
                 'borderDashOffset' => 0.0,
                 'borderJoinStyle' => 'miter',
                 'pointBorderColor' => 'rgba(75,192,192,1)',
@@ -510,13 +538,13 @@ class SalesReportService
                 'pointHitRadius' => 10,
                 'spanGaps' => false,
                 'borderWidth' => 1,
-            ),
-        );
+            ],
+        ];
 
-        return array(
+        return [
             'raw' => $raw,
             'graph' => $graph,
-        );
+        ];
     }
 
     /**
@@ -528,17 +556,16 @@ class SalesReportService
      */
     private function convertByProduct($data)
     {
-        $label = array();
-        $graphData = array();
-        $backgroundColor = array();
-        $products = array();
-        /* @var $entityManager EntityManager */
-        $entityManager = $this->app['orm.em'];
-        $sql = 'Select od.product_class_id From dtb_order_detail od Where od.order_detail_id = :order_detail_id';
-        $stmt = $entityManager->getConnection()->prepare($sql);
+        $label = [];
+        $graphData = [];
+        $backgroundColor = [];
+        $products = [];
+
+        $sql = 'Select od.product_class_id From dtb_order_item od Where od.id = :order_detail_id';
+        $stmt = $this->entityManager->getConnection()->prepare($sql);
         foreach ($data as $Order) {
             /* @var $Order \Eccube\Entity\Order */
-            $OrderDetails = $Order->getOrderDetails();
+            $OrderDetails = $Order->getOrderItems();
             foreach ($OrderDetails as $OrderDetail) {
                 // Get product class id
                 $params['order_detail_id'] = $OrderDetail->getId();
@@ -546,13 +573,13 @@ class SalesReportService
                 $productClassId = $stmt->fetch(\PDO::FETCH_COLUMN);
                 if ($productClassId) {
                     if (!array_key_exists($productClassId, $products)) {
-                        $products[$productClassId] = array(
+                        $products[$productClassId] = [
                             'OrderDetail' => $OrderDetail,
                             'total' => 0,
                             'quantity' => 0,
                             'price' => 0,
                             'time' => 0,
-                        );
+                        ];
                     }
                     $products[$productClassId]['quantity'] += $OrderDetail->getQuantity();
                     $products[$productClassId]['total'] += $OrderDetail->getTotalPrice();
@@ -562,9 +589,9 @@ class SalesReportService
         }
         //sort by total money
         $count = 0;
-        $maxDisplayCount = $this->app['config']['SalesReport']['const']['product_maximum_display'];
+        $maxDisplayCount = $this->eccubeConfig['sales_report_product_maximum_display'];
         $products = $this->sortBy('total', $products);
-        log_info('SalesReport Plugin : product report ', array('result count' => count($products)));
+        log_info('SalesReport Plugin : product report ', ['result count' => count($products)]);
         foreach ($products as $key => $product) {
             $backgroundColor[$count] = $this->getColor($count);
 
@@ -576,31 +603,30 @@ class SalesReportService
 
             if ($maxDisplayCount <= $count) {
                 break;
-
             }
         }
 
-        $result = array(
+        $result = [
             'labels' => $label,
-            'datasets' => array(
+            'datasets' => [
                 'data' => $graphData,
                 'backgroundColor' => $backgroundColor,
                 'borderWidth' => 0,
-            ),
-        );
+            ],
+        ];
 
         //return null and not display in screen
         if ($count == 0) {
-            return array(
+            return [
                 'raw' => null,
                 'graph' => null,
-            );
+            ];
         }
 
-        return array(
+        return [
             'raw' => $products,
             'graph' => $result,
-        );
+        ];
     }
 
     /**
@@ -612,10 +638,10 @@ class SalesReportService
      */
     private function convertByAge($data)
     {
-        $raw = array();
-        $result = array();
-        $tmp = array();
-        $backgroundColor = array();
+        $raw = [];
+        $result = [];
+        $tmp = [];
+        $backgroundColor = [];
         $orderNumber = 0;
         foreach ($data as $Order) {
             $age = 999;
@@ -628,10 +654,10 @@ class SalesReportService
             }
             if (!isset($result[$age])) {
                 $result[$age] = 0;
-                $raw[$age] = array(
+                $raw[$age] = [
                     'total' => 0,
                     'time' => 0,
-                );
+                ];
             }
             $result[$age] += $Order->getPaymentTotal();
             $raw[$age]['total'] += $Order->getPaymentTotal();
@@ -644,36 +670,35 @@ class SalesReportService
         ksort($raw);
         foreach ($result as $key => $value) {
             if ($key == 999) {
-                $key = '未回答';
+                $key = trans('sales_report.admin.age.list.001');
                 $tmp[$key] = $value;
             } else {
-                $tmp[$key.'代'] = $value;
+                $tmp[$key.trans('sales_report.admin.generation')] = $value;
             }
-
         }
-        log_info('SalesReport Plugin : age report ', array('result count' => count($raw)));
+        log_info('SalesReport Plugin : age report ', ['result count' => count($raw)]);
         // Return null and not display in screen
         if (count($raw) == 0) {
-            return array(
+            return [
                 'raw' => null,
                 'graph' => null,
-            );
+            ];
         }
 
-        $graph = array(
+        $graph = [
             'labels' => array_keys($tmp),
-            'datasets' => array(
-                'label' => '購入合計',
+            'datasets' => [
+                'label' => trans('sales_report.admin.list.label.012'),
                 'backgroundColor' => $backgroundColor,
                 'borderColor' => $backgroundColor,
                 'borderWidth' => 0,
                 'data' => array_values($tmp),
-            ),
-        );
+            ],
+        ];
 
-        return array(
+        return [
             'raw' => $raw,
             'graph' => $graph,
-        );
+        ];
     }
 }

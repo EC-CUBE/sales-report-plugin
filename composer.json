@@ -1,0 +1,9 @@
+{
+  "name": "ec-cube/SalesReport",
+  "version": "1.0.0",
+  "description": "売上集計プラグイン",
+  "type": "eccube-plugin",
+  "extra": {
+    "code": "SalesReport"
+  }
+}

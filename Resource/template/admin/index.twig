@@ -7,20 +7,20 @@ Copyright (C) 2016 LOCKON CO.,LTD. All Rights Reserved.
  file that was distributed with this source code.
 #}
 
-{% extends 'default_frame.twig' %}
+{% extends '@admin/default_frame.twig' %}
 
-{% block title %}売上管理{% endblock %}
+{% block title %}{{ 'sales_report.admin.title'|trans }}{% endblock %}
 
-{% form_theme form 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+{% form_theme form '@admin/Form/bootstrap_4_horizontal_layout.html.twig' %}
 
 {% block stylesheet %}
-    <link rel="stylesheet" href="{{ app.config.admin_urlpath }}/assets/css/bootstrap-datetimepicker.min.css">
+    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css', 'admin') }}">
 {% endblock stylesheet %}
 
 {% block javascript %}
-    <script src="{{ app.config.admin_urlpath }}/assets/js/vendor/moment.min.js"></script>
-    <script src="{{ app.config.admin_urlpath }}/assets/js/vendor/moment-ja.js"></script>
-    <script src="{{ app.config.admin_urlpath }}/assets/js/vendor/bootstrap-datetimepicker.min.js"></script>
+    <script src="{{ asset('assets/js/vendor/moment.min.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/moment-ja.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/bootstrap-datetimepicker.min.js', 'admin') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.3.0/Chart.js"></script>
     {% block chart %}{% endblock %}
     <script>
@@ -138,56 +138,52 @@ Copyright (C) 2016 LOCKON CO.,LTD. All Rights Reserved.
     <form role="form" name="form1" id="form1" method="post" action="{{ action }}" novalidate>
         {{ form_widget(form._token) }}
         {{ form_widget(form.term_type) }}
-        <div class="row" id="aside_wrap">
-            <div class="col-xs-12 col-sm-12 col-md-12">
-                <div class="box form-horizontal">
-                    <div class="box-header">
-                        <h3 class="box-title">{{ report_title }}</h3>
-                    </div>
-                    <!-- /.box-header -->
-                    <div class="box-body">
-                        <div class="form-group">
-                            <label class="col-sm-2 control-label">月度集計</label>
-                            <div class="col-sm-9 col-lg-10 form-inline">
-                                {{ form_widget(form.monthly_year) }} 年 {{ form_widget(form.monthly_month) }} 月
-                                {{ form_errors(form.monthly_year) }}{{ form_errors(form.monthly_month) }}
-                                <a id="btn-monthly" class="btn btn-default">月度で集計</a>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            {{ form_label(form.term_start) }}
-                            <div class="col-sm-9 col-lg-10 form-inline">
-                                {{ form_widget(form.term_start, {'attr': {'placeholder': '年-月-日'}}) }} ～ {{ form_widget(form.term_end, {'attr': {'placeholder': '年-月-日'}}) }}
-                                <a id="btn-term" class="btn btn-default">期間で集計</a>
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin: auto 0 !important; ">
-                            <label class="col-sm-2 control-label"></label>
-                            <div class="col-sm-9 col-lg-10 form-inline">
-                                {{ form_errors(form.term_start) }}
-                                {{ form_errors(form.term_end) }}
-                            </div>
+        <div class="c-contentsArea__cols">
+            <div class="c-contentsArea__primaryCol">
+                <div class="c-primaryCol">
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <span class="card-title">{{ report_title }}</span>
                         </div>
 
-                        {% block option %}{% endblock %}
+                        <div class="card-body">
+                            {% block option %}{% endblock %}
 
+                            <div class="row form-group">
+                                <div class="col-12 col-sm-2"><span>{{ 'sales_report.admin.index.001'|trans }}</span></div>
+                                <div class="col-auto col-lg-auto form-inline">
+                                    {{ form_widget(form.monthly_year) }} {{ 'sales_report.admin.label.monthly_year'|trans }} {{ form_widget(form.monthly_month) }} {{ 'sales_report.admin.label.monthly_month'|trans }}
+                                    {{ form_errors(form.monthly_year) }}{{ form_errors(form.monthly_month) }}
+                                    <button id="btn-monthly" class="btn btn-ec-conversion px-5 ladda-button" data-style="expand-right" type="submit"><span class="ladda-label">{{ 'sales_report.admin.index.002'|trans }}</span><span class="ladda-spinner"></span></button>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-12 col-sm-2"><span>{{ 'sales_report.admin.index.003'|trans }}</span></div>
+                                <div class="col-auto col-lg-auto form-inline">
+                                    {{ form_widget(form.term_start, {'attr': {'placeholder': 'sales_report.admin.placholder'|trans }}) }} ～ {{ form_widget(form.term_end, {'attr': {'placeholder': 'sales_report.admin.placholder'|trans}}) }}
+                                    &nbsp;
+                                    <button id="btn-term" class="btn btn-ec-conversion px-5 ladda-button" data-style="expand-right" type="submit"><span class="ladda-label">{{ 'sales_report.admin.index.004'|trans }}</span><span class="ladda-spinner"></span></button>
+                                    {{ form_errors(form.term_start) }}
+                                    {{ form_errors(form.term_end) }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <!-- /.box-body -->
+
+                    <div class="card rounded border-0 mb-4">
+                        {% if app.request.method == 'POST' and rawData is not null %}
+                            <div class="card-body container">
+                                <div class="col-12">
+                                    <canvas id="chart"></canvas>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% block table %}{% endblock %}
+                    </div>
                 </div>
-                <!-- /.box -->
-            </div>
-            <!-- /.col -->
-        </div>
-
-        {% if app.request.method == 'POST' and rawData is not null %}
-        <div class="row">
-            <div class="col-sm-12 col-md-8 col-md-offset-2">
-                <canvas id="chart"></canvas>
             </div>
         </div>
-        {% endif %}
-
-        {% block table %}{% endblock %}
 
     </form>
 {% endblock main %}

@@ -1,8 +1,11 @@
 <?php
+
 /*
- * This file is part of the Sales Report plugin
+ * This file is part of EC-CUBE
  *
- * Copyright (C) 2016 LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ *
+ * http://www.lockon.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -10,13 +13,28 @@
 
 namespace Plugin\SalesReport\Tests\Web;
 
+use Eccube\Repository\TaxRuleRepository;
+
 /**
  * Class SaleReportControllerTest.
  */
 class SaleReportControllerTest extends SaleReportCommon
 {
+    /** @var TaxRuleRepository */
+    protected $taxRuleRepository;
+
+    public function setUp()
+    {
+        parent::setUp();
+        $this->deleteAllRows(['dtb_order_item']);
+        $this->deleteAllRows(['dtb_shipping']);
+        $this->deleteAllRows(['dtb_order']);
+        $this->taxRuleRepository = $this->container->get(TaxRuleRepository::class);
+    }
+
     /**
      * test routing admin sale report.
+     *
      *
      * @param string $type
      * @param string $expected
@@ -24,7 +42,7 @@ class SaleReportControllerTest extends SaleReportCommon
      */
     public function testRouting($type, $expected)
     {
-        $crawler = $this->client->request('GET', $this->app->url('admin_plugin_sales_report'.$type));
+        $crawler = $this->client->request('GET', $this->generateUrl('sales_report_admin'.$type));
         $this->assertTrue($this->client->getResponse()->isSuccessful());
         $this->assertContains($expected, $crawler->html());
     }
@@ -38,7 +56,7 @@ class SaleReportControllerTest extends SaleReportCommon
     public function testDisplayTodayAsDefault($type)
     {
         $current = new \DateTime();
-        $crawler = $this->client->request('GET', $this->app->url('admin_plugin_sales_report'.$type));
+        $crawler = $this->client->request('GET', $this->generateUrl('sales_report_admin'.$type));
         $this->assertTrue($this->client->getResponse()->isSuccessful());
         $this->assertContains($current->format('Y-m-d'), $crawler->html());
     }
@@ -50,11 +68,11 @@ class SaleReportControllerTest extends SaleReportCommon
      */
     public function dataRoutingProvider()
     {
-        return array(
-            array('_term', '期間別集計'),
-            array('_product', '商品別集計'),
-            array('_age', '年代別集計'),
-        );
+        return [
+            ['_term', '期間別集計'],
+            ['_product', '商品別集計'],
+            ['_age', '年代別集計'],
+        ];
     }
 
     /**
@@ -69,11 +87,12 @@ class SaleReportControllerTest extends SaleReportCommon
     public function testSaleReportAll($type, $termType, $unit, $expected)
     {
         $this->createOrderByCustomer(5);
+
         $current = new \DateTime();
-        $arrSearch = array(
+        $arrSearch = [
             'term_type' => $termType,
             '_token' => 'dummy',
-        );
+        ];
         if ($type == '' || $type == '_term') {
             $arrSearch['unit'] = $unit;
         }
@@ -85,7 +104,7 @@ class SaleReportControllerTest extends SaleReportCommon
             $arrSearch['term_start'] = $current->modify('-15 days')->format('Y-m-d');
             $arrSearch['term_end'] = $current->modify('+15 days')->format('Y-m-d');
         }
-        $crawler = $this->client->request('POST', $this->app->url('admin_plugin_sales_report'.$type), array('sales_report' => $arrSearch));
+        $crawler = $this->client->request('POST', $this->generateUrl('sales_report_admin'.$type), ['sales_report' => $arrSearch]);
         $this->assertContains($expected, $crawler->html());
 
         // Test display csv download button
@@ -103,14 +122,14 @@ class SaleReportControllerTest extends SaleReportCommon
     {
         $i = 0;
         $j = 0;
-        $orderMoney = array();
+        $orderMoney = [];
         $flag = false;
         $this->createOrderByCustomer(5);
         $current = new \DateTime();
-        $arrSearch = array(
+        $arrSearch = [
             'term_type' => $termType,
             '_token' => 'dummy',
-        );
+        ];
 
         if ($termType == 'monthly') {
             $arrSearch['monthly_year'] = $current->format('Y');
@@ -119,8 +138,8 @@ class SaleReportControllerTest extends SaleReportCommon
             $arrSearch['term_start'] = $current->modify('-15 days')->format('Y-m-d');
             $arrSearch['term_end'] = $current->modify('+15 days')->format('Y-m-d');
         }
-        $crawler = $this->client->request('POST', $this->app->url('admin_plugin_sales_report'.$type), array('sales_report' => $arrSearch));
-        $moneyElement = $crawler->filter('tr .hidden');
+        $crawler = $this->client->request('POST', $this->generateUrl('sales_report_admin'.$type), ['sales_report' => $arrSearch]);
+        $moneyElement = $crawler->filter('tr .d-none');
         //get only total money. don't get product price
         foreach ($moneyElement as $domElement) {
             if ($i % 2 != 0) {
@@ -151,13 +170,13 @@ class SaleReportControllerTest extends SaleReportCommon
      */
     public function testProductDelete($type, $termType, $unit, $expected)
     {
+        $this->createOrderByCustomer(5);
+
         $current = new \DateTime();
-        $arrOrder = $this->createOrderByCustomer(5);
-        $this->deleteProduct($arrOrder[0]);
-        $arrSearch = array(
+        $arrSearch = [
             'term_type' => $termType,
             '_token' => 'dummy',
-        );
+        ];
 
         if ($type == '' || $type == '_term') {
             $arrSearch['unit'] = $unit;
@@ -170,7 +189,7 @@ class SaleReportControllerTest extends SaleReportCommon
             $arrSearch['term_start'] = $current->modify('-15 days')->format('Y-m-d');
             $arrSearch['term_end'] = $current->modify('+15 days')->format('Y-m-d');
         }
-        $crawler = $this->client->request('POST', $this->app->url('admin_plugin_sales_report'.$type), array('sales_report' => $arrSearch));
+        $crawler = $this->client->request('POST', $this->generateUrl('sales_report_admin'.$type), ['sales_report' => $arrSearch]);
         $this->assertContains($expected, $crawler->html());
     }
 
@@ -187,12 +206,12 @@ class SaleReportControllerTest extends SaleReportCommon
         $orderMoney = 0;
         $current = new \DateTime();
         $arrOrder = $this->createOrderByCustomer(5);
-        $TaxRule = $this->app['eccube.repository.tax_rule']->getByRule();
-        $this->changeOrderDetail($arrOrder);
-        $arrSearch = array(
+        $TaxRule = $this->taxRuleRepository->getByRule();
+        $this->changeOrderDetail($arrOrder, $TaxRule);
+        $arrSearch = [
             'term_type' => $termType,
             '_token' => 'dummy',
-        );
+        ];
 
         if ($termType == 'monthly') {
             $arrSearch['monthly_year'] = $current->format('Y');
@@ -201,8 +220,8 @@ class SaleReportControllerTest extends SaleReportCommon
             $arrSearch['term_start'] = $current->modify('-15 days')->format('Y-m-d');
             $arrSearch['term_end'] = $current->modify('+15 days')->format('Y-m-d');
         }
-        $crawler = $this->client->request('POST', $this->app->url('admin_plugin_sales_report'.$type), array('sales_report' => $arrSearch));
-        $moneyElement = $crawler->filter('tr .hidden');
+        $crawler = $this->client->request('POST', $this->generateUrl('sales_report_admin'.$type), ['sales_report' => $arrSearch]);
+        $moneyElement = $crawler->filter('tr .d-none');
         //get only total money. don't get product price
         foreach ($moneyElement as $domElement) {
             $orderMoney += $domElement->nodeValue;
@@ -222,20 +241,20 @@ class SaleReportControllerTest extends SaleReportCommon
      */
     public function dataReportProvider()
     {
-        return array(
-            array('_term', 'monthly', 'byDay', '購入平均'),
-            array('_term', 'monthly', 'byMonth', '購入平均'),
-            array('_term', 'monthly', 'byWeekDay', '購入平均'),
-            array('_term', 'monthly', 'byHour', '購入平均'),
-            array('_term', 'term', 'byDay', '購入平均'),
-            array('_term', 'term', 'byMonth', '購入平均'),
-            array('_term', 'term', 'byWeekDay', '購入平均'),
-            array('_term', 'term', 'byHour', '購入平均'),
-            array('_product', 'monthly', null, '商品名'),
-            array('_product', 'term', null, '商品名'),
-            array('_age', 'monthly', null, '購入平均'),
-            array('_age', 'term', null, '購入平均'),
-        );
+        return [
+            ['_term', 'monthly', 'byDay', '購入平均'],
+            ['_term', 'monthly', 'byMonth', '購入平均'],
+            ['_term', 'monthly', 'byWeekDay', '購入平均'],
+            ['_term', 'monthly', 'byHour', '購入平均'],
+            ['_term', 'term', 'byDay', '購入平均'],
+            ['_term', 'term', 'byMonth', '購入平均'],
+            ['_term', 'term', 'byWeekDay', '購入平均'],
+            ['_term', 'term', 'byHour', '購入平均'],
+            ['_product', 'monthly', null, '商品名'],
+            ['_product', 'term', null, '商品名'],
+            ['_age', 'monthly', null, '購入平均'],
+            ['_age', 'term', null, '購入平均'],
+        ];
     }
 
     /**
@@ -245,9 +264,9 @@ class SaleReportControllerTest extends SaleReportCommon
      */
     public function dataProductReportProvider()
     {
-        return array(
-            array('_product', 'monthly'),
-            array('_product', 'term'),
-        );
+        return [
+            ['_product', 'monthly'],
+            ['_product', 'term'],
+        ];
     }
 }

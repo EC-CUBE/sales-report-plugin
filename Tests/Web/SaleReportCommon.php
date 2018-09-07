@@ -1,8 +1,11 @@
 <?php
+
 /*
- * This file is part of the Sales Report plugin
+ * This file is part of EC-CUBE
  *
- * Copyright (C) 2016 LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ *
+ * http://www.lockon.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -10,21 +13,31 @@
 
 namespace Plugin\SalesReport\Tests\Web;
 
+use Eccube\Entity\Master\OrderStatus;
+use Eccube\Entity\Order;
+use Eccube\Repository\CustomerRepository;
+use Eccube\Repository\Master\OrderStatusRepository;
 use Eccube\Tests\Web\Admin\AbstractAdminWebTestCase;
-use Eccube\Common\Constant;
 
 /**
  * Class SaleReportCommon.
  */
 class SaleReportCommon extends AbstractAdminWebTestCase
 {
+    /** @var CustomerRepository */
+    protected $customerRepository;
+
+    /** @var OrderStatusRepository */
+    protected $orderStatusRepository;
+
     /**
      * Set up function.
      */
     public function setUp()
     {
         parent::setUp();
-        $this->deleteAllRows(array('dtb_order_detail'));
+        $this->customerRepository = $this->container->get(CustomerRepository::class);
+        $this->orderStatusRepository = $this->container->get(OrderStatusRepository::class);
     }
 
     /**
@@ -36,7 +49,7 @@ class SaleReportCommon extends AbstractAdminWebTestCase
      */
     public function createCustomerByNumber($number = 5)
     {
-        $arrCustomer = array();
+        $arrCustomer = [];
         $current = new \DateTime();
         for ($i = 0; $i < $number; ++$i) {
             $email = 'customer0'.$i.'@mail.com';
@@ -45,8 +58,8 @@ class SaleReportCommon extends AbstractAdminWebTestCase
             $Customer = $this->createCustomer($email);
             $arrCustomer[] = $Customer->getId();
             $Customer->setBirth($age);
-            $this->app['orm.em']->persist($Customer);
-            $this->app['orm.em']->flush($Customer);
+            $this->entityManager->persist($Customer);
+            $this->entityManager->flush($Customer);
         }
 
         return $arrCustomer;
@@ -63,57 +76,51 @@ class SaleReportCommon extends AbstractAdminWebTestCase
     {
         $arrCustomer = $this->createCustomerByNumber($number);
         $current = new \DateTime();
-        $arrOrder = array();
+        $arrOrder = [];
         for ($i = 0; $i < count($arrCustomer); ++$i) {
-            $Customer = $this->app['eccube.repository.customer']->find($arrCustomer[$i]);
+            $Customer = $this->customerRepository->find($arrCustomer[$i]);
             $Order = $this->createOrder($Customer);
-            $Order->setOrderStatus($this->app['eccube.repository.order_status']->find($this->app['config']['order_new']));
+            $Order->setOrderStatus($this->orderStatusRepository->find(OrderStatus::NEW));
             $Order->setOrderDate($current);
             $arrOrder[] = $Order;
-            $this->app['orm.em']->persist($Order);
-            $this->app['orm.em']->flush($Order);
+            $this->entityManager->persist($Order);
+            $this->entityManager->flush($Order);
         }
 
         return $arrOrder;
     }
 
     /**
-     * delete product.
-     *
-     * @param \Eccube\Entity\Order $Order
+     * @param $Orders
+     * @param $TaxRule
      */
-    public function deleteProduct($Order)
+    public function changeOrderDetail($Orders, $TaxRule)
     {
-        foreach ($Order->getOrderDetails() as $OrderDetail) {
-            $Product = $OrderDetail->getProduct();
-            $ProductClasses = $Product->getProductClasses();
-            $Product->setDelFlg(Constant::ENABLED);
-            foreach ($ProductClasses as $ProductClass) {
-                $ProductClass->setDelFlg(Constant::ENABLED);
-                $Product->removeProductClass($ProductClass);
-                $this->app['orm.em']->persist($ProductClass);
-                $this->app['orm.em']->flush($ProductClass);
-            }
-            $this->app['orm.em']->persist($Product);
-            $this->app['orm.em']->flush($Product);
-        }
-    }
-
-    /**
-     * change order detail.
-     *
-     * @param array $Orders
-     */
-    public function changeOrderDetail($Orders)
-    {
+        /** @var Order $Order */
         foreach ($Orders as $Order) {
-            foreach ($Order->getOrderDetails() as $OrderDetail) {
-                /* @var \Eccube\Entity\OrderDetail $OrderDetail */
-                $OrderDetail->setPrice(500);
-                $OrderDetail->setQuantity(1);
-                $this->app['orm.em']->persist($OrderDetail);
-                $this->app['orm.em']->flush($OrderDetail);
+            $totalTax = 0;
+            $total = 0;
+            /** @var Order $Order */
+            foreach ($Order->getOrderItems() as $orderItem) {
+                if ($orderItem->isProduct()) {
+                    $TaxRate = $TaxRule->getTaxRate() / 100;
+                    $tax = 500 * $TaxRate;
+                    /* @var \Eccube\Entity\OrderItem $orderItem */
+                    $orderItem->setPrice(500);
+                    $orderItem->setQuantity(1);
+                    $orderItem->setTax($tax);
+                    $this->entityManager->persist($orderItem);
+                    $this->entityManager->flush($orderItem);
+                    $totalTax += $tax;
+                    $total += 500 + $tax;
+                }
             }
+
+            $Order->setSubtotal($total);
+            $Order->setTotal($total);
+            $Order->setTax($totalTax);
+            $this->entityManager->persist($Order);
+            $this->entityManager->flush($Order);
         }
     }
 }
