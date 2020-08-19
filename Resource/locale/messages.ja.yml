@@ -24,8 +24,6 @@ sales_report.admin.age.field.004: 購入平均
 sales_report.admin.age.list.001: 未回答
 sales_report.admin.age.list.002: 代
 sales_report.admin.list.nodata: 集計期間にデータがありませんでした。
-sales_report.admin.age.list.001: 年代
-sales_report.admin.age.list.001: 年代
 sales_report.admin.money: "購入合計: ¥"
 sales_report.admin.money.code: "¥"
 sales_report.admin.index.001: 月度集計
