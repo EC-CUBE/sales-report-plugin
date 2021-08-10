@@ -14,9 +14,8 @@
 namespace Plugin\SalesReport4\Service;
 
 use DateTime;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NoResultException;
-use Eccube\Application;
 use Eccube\Common\EccubeConfig;
 use Eccube\Entity\Master\OrderStatus;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,7 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 class SalesReportService
 {
     /**
-     * @var Application
+     * @var EccubeConfig
      */
     private $eccubeConfig;
 
@@ -99,16 +98,16 @@ class SalesReportService
      */
     const FEMALE = 2;
 
-    /** @var EntityManager */
+    /** @var EntityManagerInterface */
     protected $entityManager;
 
     /**
      * SalesReportService constructor.
      *
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @param EccubeConfig $eccubeConfig
      */
-    public function __construct(EntityManager $entityManager, EccubeConfig $eccubeConfig)
+    public function __construct(EntityManagerInterface $entityManager, EccubeConfig $eccubeConfig)
     {
         $this->entityManager = $entityManager;
         $this->eccubeConfig = $eccubeConfig;
@@ -401,7 +400,7 @@ class SalesReportService
             if ($a == $b) {
                 return 0;
             }
-   
+
             return ($a '.($direction == 'desc' ? '>' : '<').' $b) ? -1 : 1;
 	    '));
 

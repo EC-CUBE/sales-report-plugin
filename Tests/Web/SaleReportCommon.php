@@ -13,8 +13,11 @@
 
 namespace Plugin\SalesReport4\Tests\Web;
 
+use Eccube\Entity\Customer;
 use Eccube\Entity\Master\OrderStatus;
 use Eccube\Entity\Order;
+use Eccube\Entity\OrderItem;
+use Eccube\Entity\TaxRule;
 use Eccube\Repository\CustomerRepository;
 use Eccube\Repository\Master\OrderStatusRepository;
 use Eccube\Tests\Web\Admin\AbstractAdminWebTestCase;
@@ -36,8 +39,8 @@ class SaleReportCommon extends AbstractAdminWebTestCase
     public function setUp()
     {
         parent::setUp();
-        $this->customerRepository = $this->container->get(CustomerRepository::class);
-        $this->orderStatusRepository = $this->container->get(OrderStatusRepository::class);
+        $this->customerRepository = $this->entityManager->getRepository(Customer::class);
+        $this->orderStatusRepository = $this->entityManager->getRepository(OrderStatus::class);
     }
 
     /**
@@ -59,7 +62,7 @@ class SaleReportCommon extends AbstractAdminWebTestCase
             $arrCustomer[] = $Customer->getId();
             $Customer->setBirth($age);
             $this->entityManager->persist($Customer);
-            $this->entityManager->flush($Customer);
+            $this->entityManager->flush();
         }
 
         return $arrCustomer;
@@ -84,15 +87,15 @@ class SaleReportCommon extends AbstractAdminWebTestCase
             $Order->setOrderDate($current);
             $arrOrder[] = $Order;
             $this->entityManager->persist($Order);
-            $this->entityManager->flush($Order);
+            $this->entityManager->flush();
         }
 
         return $arrOrder;
     }
 
     /**
-     * @param $Orders
-     * @param $TaxRule
+     * @param Order[] $Orders
+     * @param TaxRule $TaxRule
      */
     public function changeOrderDetail($Orders, $TaxRule)
     {
@@ -100,17 +103,16 @@ class SaleReportCommon extends AbstractAdminWebTestCase
         foreach ($Orders as $Order) {
             $totalTax = 0;
             $total = 0;
-            /** @var Order $Order */
             foreach ($Order->getOrderItems() as $orderItem) {
+                /** @var OrderItem $orderItem */
                 if ($orderItem->isProduct()) {
                     $TaxRate = $TaxRule->getTaxRate() / 100;
                     $tax = 500 * $TaxRate;
-                    /* @var \Eccube\Entity\OrderItem $orderItem */
                     $orderItem->setPrice(500);
                     $orderItem->setQuantity(1);
                     $orderItem->setTax($tax);
                     $this->entityManager->persist($orderItem);
-                    $this->entityManager->flush($orderItem);
+                    $this->entityManager->flush();
                     $totalTax += $tax;
                     $total += 500 + $tax;
                 }
@@ -120,7 +122,7 @@ class SaleReportCommon extends AbstractAdminWebTestCase
             $Order->setTotal($total);
             $Order->setTax($totalTax);
             $this->entityManager->persist($Order);
-            $this->entityManager->flush($Order);
+            $this->entityManager->flush();
         }
     }
 }
