@@ -1,9 +1,6 @@
 # 売上集計プラグイン
 
-[![Build Status](https://travis-ci.org/EC-CUBE/sales-report-plugin.svg?branch=master)](https://travis-ci.org/EC-CUBE/sales-report-plugin)
-[![Build status](https://ci.appveyor.com/api/projects/status/7ywi4kw3q5pru4j3/branch/master?svg=true)](https://ci.appveyor.com/project/ECCUBE/sales-report-plugin/branch/master)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/c044fde6-ee82-42ed-bc3e-7a91652656bf/mini.png)](https://insight.sensiolabs.com/projects/c044fde6-ee82-42ed-bc3e-7a91652656bf)
-[![Coverage Status](https://coveralls.io/repos/github/EC-CUBE/sales-report-plugin/badge.svg?branch=master)](https://coveralls.io/github/EC-CUBE/sales-report-plugin?branch=master)
+[![CI for SalesReport4](https://github.com/EC-CUBE/sales-report-plugin/actions/workflows/main.yml/badge.svg)](https://github.com/EC-CUBE/sales-report-plugin/actions/workflows/main.yml)
 
 ## 概要
 売上を集計し、結果をグラフと一覧で確認できます。

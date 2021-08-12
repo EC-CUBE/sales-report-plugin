@@ -13,6 +13,7 @@
 
 namespace Plugin\SalesReport4\Tests\Web;
 
+use Eccube\Entity\TaxRule;
 use Eccube\Repository\TaxRuleRepository;
 
 /**
@@ -29,7 +30,7 @@ class SaleReportControllerTest extends SaleReportCommon
         $this->deleteAllRows(['dtb_order_item']);
         $this->deleteAllRows(['dtb_shipping']);
         $this->deleteAllRows(['dtb_order']);
-        $this->taxRuleRepository = $this->container->get(TaxRuleRepository::class);
+        $this->taxRuleRepository = $this->entityManager->getRepository(TaxRule::class);
     }
 
     /**

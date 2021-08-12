@@ -182,7 +182,7 @@ class SalesReportController extends AbstractController
 
         $options = [];
 
-        if (!is_null($reportType) && $form->isValid()) {
+        if (!is_null($reportType) && $form->isSubmitted() && $form->isValid()) {
             $session = $request->getSession();
             $searchData = $form->getData();
             $searchData['term_type'] = $form->get('term_type')->getData();
