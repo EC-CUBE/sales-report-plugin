@@ -11,7 +11,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport4\Service;
+namespace Plugin\SalesReport42\Service;
 
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;

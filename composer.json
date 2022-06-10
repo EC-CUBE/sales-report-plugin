@@ -1,12 +1,12 @@
 {
-  "name": "ec-cube/salesreport4",
-  "version": "4.1.0",
+  "name": "ec-cube/salesreport42",
+  "version": "4.2.0",
   "description": "売上集計プラグイン",
   "type": "eccube-plugin",
   "require": {
-    "ec-cube/plugin-installer": "~0.0.6 || ^2.0"
+    "ec-cube/plugin-installer": "^2.0"
   },
   "extra": {
-    "code": "SalesReport4"
+    "code": "SalesReport42"
   }
 }

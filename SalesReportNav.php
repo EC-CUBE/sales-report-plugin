@@ -11,7 +11,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport4;
+namespace Plugin\SalesReport42;
 
 use Eccube\Common\EccubeNav;
 
@@ -25,7 +25,7 @@ class SalesReportNav implements EccubeNav
     public static function getNav()
     {
         return [
-            'SalesReport4' => [
+            'SalesReport42' => [
                 'name' => 'sales_report.admin.nav.001',
                 'icon' => 'fa-chart-bar',
                 'children' => [

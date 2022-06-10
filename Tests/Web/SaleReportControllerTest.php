@@ -11,7 +11,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport4\Tests\Web;
+namespace Plugin\SalesReport42\Tests\Web;
 
 use Eccube\Entity\TaxRule;
 use Eccube\Repository\TaxRuleRepository;
@@ -24,7 +24,7 @@ class SaleReportControllerTest extends SaleReportCommon
     /** @var TaxRuleRepository */
     protected $taxRuleRepository;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->deleteAllRows(['dtb_order_item']);
@@ -45,7 +45,7 @@ class SaleReportControllerTest extends SaleReportCommon
     {
         $crawler = $this->client->request('GET', $this->generateUrl('sales_report_admin'.$type));
         $this->assertTrue($this->client->getResponse()->isSuccessful());
-        $this->assertContains($expected, $crawler->html());
+        $this->assertStringContainsString($expected, $crawler->html());
     }
 
     /**
@@ -59,7 +59,7 @@ class SaleReportControllerTest extends SaleReportCommon
         $current = new \DateTime();
         $crawler = $this->client->request('GET', $this->generateUrl('sales_report_admin'.$type));
         $this->assertTrue($this->client->getResponse()->isSuccessful());
-        $this->assertContains($current->format('Y-m-d'), $crawler->html());
+        $this->assertStringContainsString($current->format('Y-m-d'), $crawler->html());
     }
 
     /**
@@ -106,10 +106,10 @@ class SaleReportControllerTest extends SaleReportCommon
             $arrSearch['term_end'] = $current->modify('+15 days')->format('Y-m-d');
         }
         $crawler = $this->client->request('POST', $this->generateUrl('sales_report_admin'.$type), ['sales_report' => $arrSearch]);
-        $this->assertContains($expected, $crawler->html());
+        $this->assertStringContainsString($expected, $crawler->html());
 
         // Test display csv download button
-        $this->assertContains('CSVダウンロード', $crawler->html());
+        $this->assertStringContainsString('CSVダウンロード', $crawler->html());
     }
 
     /**
@@ -191,7 +191,7 @@ class SaleReportControllerTest extends SaleReportCommon
             $arrSearch['term_end'] = $current->modify('+15 days')->format('Y-m-d');
         }
         $crawler = $this->client->request('POST', $this->generateUrl('sales_report_admin'.$type), ['sales_report' => $arrSearch]);
-        $this->assertContains($expected, $crawler->html());
+        $this->assertStringContainsString($expected, $crawler->html());
     }
 
     /**

@@ -11,7 +11,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport4;
+namespace Plugin\SalesReport42;
 
 use Eccube\Plugin\AbstractPluginManager;
 
