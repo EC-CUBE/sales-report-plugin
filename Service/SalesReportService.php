@@ -394,15 +394,18 @@ class SalesReportService
      */
     private function sortBy($field, &$array, $direction = 'desc')
     {
-        usort($array, create_function('$a, $b', '
-            $a = $a["'.$field.'"];
-            $b = $b["'.$field.'"];
+        usort($array, function ($a, $b) use ($field, $direction) {
+            $a = $a[$field];
+            $b = $b[$field];
             if ($a == $b) {
                 return 0;
             }
-
-            return ($a '.($direction == 'desc' ? '>' : '<').' $b) ? -1 : 1;
-	    '));
+            if ($direction === 'desc') {
+                return ($a > $b) ? -1 : 1;
+            } else {
+                return ($a < $b) ? -1 : 1;
+            }
+        });
 
         return $array;
     }
