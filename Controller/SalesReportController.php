@@ -11,11 +11,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport4\Controller;
+namespace Plugin\SalesReport42\Controller;
 
 use Eccube\Controller\AbstractController;
-use Plugin\SalesReport4\Form\Type\SalesReportType;
-use Plugin\SalesReport4\Service\SalesReportService;
+use Plugin\SalesReport42\Form\Type\SalesReportType;
+use Plugin\SalesReport42\Service\SalesReportService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -200,7 +200,7 @@ class SalesReportController extends AbstractController
         log_info('SalesReport Plugin : render ', ['template' => $template]);
 
         return $this->render(
-            '@SalesReport4/admin/'.$template.'.twig',
+            '@SalesReport42/admin/'.$template.'.twig',
             [
                 'form' => $form->createView(),
                 'graphData' => json_encode($data['graph']),

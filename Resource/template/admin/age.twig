@@ -7,12 +7,12 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
  file that was distributed with this source code.
 #}
 
-{% extends 'SalesReport4/Resource/template/admin/index.twig' %}
+{% extends 'SalesReport42/Resource/template/admin/index.twig' %}
 {% block sub_title %}{{ 'sales_report.admin.sub.title.age'|trans }}{% endblock %}
 
 {% set report_title = 'sales_report.admin.report_title'|trans %}
 {% set action = url('sales_report_admin_age') %}
-{% set menus = ['SalesReport4', 'sales_report_admin_age'] %}
+{% set menus = ['SalesReport42', 'sales_report_admin_age'] %}
 
 {% block stylesheet %}
     <link rel="stylesheet" href="{{ asset('assets/css/tempusdominus-bootstrap-4.min.css', 'admin') }}">

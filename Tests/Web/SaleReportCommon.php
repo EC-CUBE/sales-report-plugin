@@ -11,7 +11,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport4\Tests\Web;
+namespace Plugin\SalesReport42\Tests\Web;
 
 use Eccube\Entity\Customer;
 use Eccube\Entity\Master\OrderStatus;
@@ -36,7 +36,7 @@ class SaleReportCommon extends AbstractAdminWebTestCase
     /**
      * Set up function.
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->customerRepository = $this->entityManager->getRepository(Customer::class);

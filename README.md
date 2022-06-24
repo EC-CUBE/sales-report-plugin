@@ -1,6 +1,6 @@
 # 売上集計プラグイン
 
-[![CI for SalesReport4](https://github.com/EC-CUBE/sales-report-plugin/actions/workflows/main.yml/badge.svg)](https://github.com/EC-CUBE/sales-report-plugin/actions/workflows/main.yml)
+[![CI for SalesReport42](https://github.com/EC-CUBE/sales-report-plugin/actions/workflows/main.yml/badge.svg)](https://github.com/EC-CUBE/sales-report-plugin/actions/workflows/main.yml)
 
 ## 概要
 売上を集計し、結果をグラフと一覧で確認できます。
