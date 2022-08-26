@@ -150,8 +150,8 @@ class SalesReportController extends AbstractController
 
         $response->headers->set('Content-Type', 'application/octet-stream;');
         $response->headers->set('Content-Disposition', 'attachment; filename='.$filename);
-        $response->send();
-        log_info('商品CSV出力ファイル名', [$filename]);
+
+        log_info('売上集計CSV出力ファイル名', [$filename]);
 
         return $response;
     }
