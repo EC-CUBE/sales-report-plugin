@@ -150,22 +150,49 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
                         <div class="card-body">
                             {% block option %}{% endblock %}
 
-                            <div class="row form-group">
-                                <div class="col-12 col-sm-2"><span>{{ 'sales_report.admin.index.001'|trans }}</span></div>
-                                <div class="col-auto col-lg-auto form-inline">
-                                    {{ form_widget(form.monthly_year) }} {{ 'sales_report.admin.label.monthly_year'|trans }} {{ form_widget(form.monthly_month) }} {{ 'sales_report.admin.label.monthly_month'|trans }}
-                                    {{ form_errors(form.monthly_year) }}{{ form_errors(form.monthly_month) }}
-                                    <button id="btn-monthly" class="btn btn-ec-conversion px-5" data-style="expand-right" type="submit">{{ 'sales_report.admin.index.002'|trans }}</button>
+                            <div class="row">
+                                <div class="col-3"><span>{{ 'sales_report.admin.index.001'|trans }}</span></div>
+                                <div class="col mb-2">
+                                    <div class="row justify-content-start">
+                                        <div class="w-auto">
+                                            <div class="align-items-center d-flex">
+                                                {{ form_widget(form.monthly_year, {'attr': {'class':'float-start'}}) }}
+                                                {{ 'sales_report.admin.label.monthly_year'|trans }}
+                                            </div>
+                                            {{ form_errors(form.monthly_year) }}
+                                        </div>
+                                        <div class="w-auto">
+                                            <div class="align-items-center d-flex">
+                                                {{ form_widget(form.monthly_month, {'attr': {'class':'float-start'}}) }}
+                                                {{ 'sales_report.admin.label.monthly_month'|trans }}
+                                            </div>
+                                            {{ form_errors(form.monthly_month) }}
+                                        </div>
+                                        <div class="w-auto">
+                                            <button id="btn-monthly" class="btn btn-ec-conversion px-5" data-style="expand-right" type="submit">{{ 'sales_report.admin.index.002'|trans }}</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="row form-group">
-                                <div class="col-12 col-sm-2"><span>{{ 'sales_report.admin.index.003'|trans }}</span></div>
-                                <div class="col-auto col-lg-auto form-inline">
-                                    {{ form_widget(form.term_start, {'attr': {'placeholder': 'sales_report.admin.placholder'|trans }}) }} ～ {{ form_widget(form.term_end, {'attr': {'placeholder': 'sales_report.admin.placholder'|trans}}) }}
-                                    &nbsp;
-                                    <button id="btn-term" class="btn btn-ec-conversion px-5" data-style="expand-right" type="submit">{{ 'sales_report.admin.index.004'|trans }}</button>
-                                    {{ form_errors(form.term_start) }}
-                                    {{ form_errors(form.term_end) }}
+                            <div class="row">
+                                <div class="col-3"><span>{{ 'sales_report.admin.index.003'|trans }}</span></div>
+                                <div class="col mb-2">
+                                    <div class="row justify-content-start">
+                                        <div class="w-auto">
+                                            {{ form_widget(form.term_start, {'attr': {'placeholder': 'sales_report.admin.placholder'|trans}}) }}
+                                            {{ form_errors(form.term_start) }}
+                                        </div>
+                                        <div class="w-auto text-center p-0">
+                                            <span class="align-middle">～</span>
+                                        </div>
+                                        <div class="w-auto">
+                                            {{ form_widget(form.term_end, {'attr': {'placeholder': 'sales_report.admin.placholder'|trans}}) }}
+                                            {{ form_errors(form.term_end) }}
+                                        </div>
+                                        <div class="w-auto">
+                                            <button id="btn-term" class="btn btn-ec-conversion px-5 text-nowrap" data-style="expand-right" type="submit">{{ 'sales_report.admin.index.004'|trans }}</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
