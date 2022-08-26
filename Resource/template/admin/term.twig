@@ -128,7 +128,7 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
         <div class="card-body">
             <div class="row">
                 {% if rawData is not null %}
-                    <div class="col-12 text-right mb-2">
+                    <div class="col-12 text-end mb-2">
                         <div class="d-inline-block">
                             <div class="btn-group d-inline-block" role="group">
                                 <button type="button" class="btn btn-ec-regular" id="export-csv"><i
@@ -150,29 +150,29 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
                             <th class="border-top-0 py-2 text-center">{{ 'sales_report.admin.list.label.007'|trans }}</th>
                             <th class="border-top-0 py-2 text-center">{{ 'sales_report.admin.list.label.008'|trans }}</th>
                             <th class="border-top-0 py-2 text-center">{{ 'sales_report.admin.list.label.009'|trans }}</th>
-                            <th class="border-top-0 py-2 text-right">{{ 'sales_report.admin.list.label.010'|trans }}</th>
-                            <th class="border-top-0 py-2 text-right">{{ 'sales_report.admin.list.label.011'|trans }}</th>
+                            <th class="border-top-0 py-2 text-end">{{ 'sales_report.admin.list.label.010'|trans }}</th>
+                            <th class="border-top-0 py-2 text-end">{{ 'sales_report.admin.list.label.011'|trans }}</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for date, row in rawData %}
                             <tr>
-                                <td class="align-middle text-center pl-3">{{ date }}</td>
-                                <td class="align-middle text-center pl-3">{{ row is empty ? '' : row.time|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ date }}</td>
+                                <td class="align-middle text-center ps-3">{{ row is empty ? '' : row.time|number_format }}</td>
 
-                                <td class="align-middle text-center pl-3">{{ row is empty ? '' : row.male|number_format }}</td>
-                                <td class="align-middle text-center pl-3">{{ row is empty ? '' : row.female|number_format }}</td>
-                                <td class="align-middle text-center pl-3">{{ row is empty ? '' : row.other|number_format }}</td>
-                                <td class="align-middle text-center pl-3">{{ row is empty ? '' : row.member_male|number_format }}</td>
-                                <td class="align-middle text-center pl-3">{{ row is empty ? '' : row.nonmember_male|number_format }}</td>
-                                <td class="align-middle text-center pl-3">{{ row is empty ? '' : row.member_female|number_format }}</td>
-                                <td class="align-middle text-center pl-3">{{ row is empty ? '' : row.nonmember_female|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ row is empty ? '' : row.male|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ row is empty ? '' : row.female|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ row is empty ? '' : row.other|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ row is empty ? '' : row.member_male|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ row is empty ? '' : row.nonmember_male|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ row is empty ? '' : row.member_female|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ row is empty ? '' : row.nonmember_female|number_format }}</td>
 
-                                <td class="price-format text-right">
+                                <td class="price-format text-end">
                                     {{ row is empty ? '' : row.price|price }}
                                     <span class="d-none">{{ row is empty ? '' : row.price }}</span>
                                 </td>
-                                <td class="price-format text-right">
+                                <td class="price-format text-end">
                                     {% if row is not empty and row.time > 0 %}
                                         {{ (row.price / row.time)|round(2, 'floor')|price }}
                                     {% else %}

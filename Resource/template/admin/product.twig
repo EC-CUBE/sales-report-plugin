@@ -101,7 +101,7 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
         <div class="card-body">
             <div class="row">
                 {% if rawData is not null %}
-                    <div class="col-12 text-right mb-2">
+                    <div class="col-12 text-end mb-2">
                         <div class="d-inline-block">
                             <div class="btn-group d-inline-block" role="group">
                                 <button type="button" class="btn btn-ec-regular" id="export-csv"><i
@@ -114,21 +114,21 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
                     <table class="table table-striped" id="product-table">
                         <thead>
                         <tr>
-                            <th class="border-top-0 py-2 text-left">{{ 'sales_report.admin.product.003'|trans }}</th>
-                            <th class="border-top-0 py-2 text-left">{{ 'sales_report.admin.product.004'|trans }}</th>
+                            <th class="border-top-0 py-2 text-start">{{ 'sales_report.admin.product.003'|trans }}</th>
+                            <th class="border-top-0 py-2 text-start">{{ 'sales_report.admin.product.004'|trans }}</th>
                             <th class="border-top-0 py-2 text-center">{{ 'sales_report.admin.product.005'|trans }}</th>
                             <th class="border-top-0 py-2 text-center">{{ 'sales_report.admin.product.006'|trans }}</th>
-                            <th class="border-top-0 py-2 text-right">{{ 'sales_report.admin.product.007'|trans }}</th>
+                            <th class="border-top-0 py-2 text-end">{{ 'sales_report.admin.product.007'|trans }}</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for row in rawData %}
                             <tr>
-                                <td class="align-middle text-left pl-3">{{ row.OrderDetail.product_code }}</td>
-                                <td class="align-middle text-left pl-3">{{ row.OrderDetail.product_name }} {{ row.OrderDetail.class_category_name1 }} {{ row.OrderDetail.class_category_name2 }}</td>
-                                <td class="align-middle text-center pl-3">{{ row.time|number_format }}</td>
-                                <td class="align-middle text-center pl-3">{{ row.quantity|number_format }}</td>
-                                <td class="align-middle price-format text-right pr-3">
+                                <td class="align-middle text-start ps-3">{{ row.OrderDetail.product_code }}</td>
+                                <td class="align-middle text-start ps-3">{{ row.OrderDetail.product_name }} {{ row.OrderDetail.class_category_name1 }} {{ row.OrderDetail.class_category_name2 }}</td>
+                                <td class="align-middle text-center ps-3">{{ row.time|number_format }}</td>
+                                <td class="align-middle text-center ps-3">{{ row.quantity|number_format }}</td>
+                                <td class="align-middle price-format text-end pe-3">
                                     {{ row.total|price }}
                                     <span class="d-none">{{ row.total|raw }}</span>
                                 </td>
