@@ -114,9 +114,9 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
 {% endblock %}
 
 {% block option %}
-    <div class="row form-group">
-        <div class="col-12 col-sm-2"><span>{{ 'sales_report.admin.term.001'|trans }}</span></div>
-        <div class="col-auto col-lg-auto form-inline">
+    <div class="row">
+        <div class="col-3"><span>{{ 'sales_report.admin.term.001'|trans }}</span></div>
+        <div class="col mb-2">
             {{ form_widget(form.unit) }}
             {{ form_errors(form.unit) }}
         </div>
