@@ -130,7 +130,7 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
                                 <td class="align-middle text-center ps-3">{{ row.quantity|number_format }}</td>
                                 <td class="align-middle price-format text-end pe-3">
                                     {{ row.total|price }}
-                                    <span class="d-none">{{ row.total|raw }}</span>
+                                    <span class="d-none">{{ row.total }}</span>
                                 </td>
                             </tr>
                         {% endfor %}
