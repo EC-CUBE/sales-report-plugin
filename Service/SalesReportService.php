@@ -354,6 +354,15 @@ class SalesReportService
         switch ($this->reportType) {
             case 'term':
                 $result = $this->convertByTerm($data);
+
+                if (!empty($result['raw'])) {
+                    foreach($result['raw'] as $date => $value) {
+                        foreach(array_keys($value) as $key) {
+                            $result['raw']['total'][$key] = array_sum(array_column($result['raw'], $key));
+                        }
+                        break;
+                    }
+                }
                 break;
             case 'product':
                 $result = $this->convertByProduct($data);
