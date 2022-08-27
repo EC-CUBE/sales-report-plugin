@@ -233,6 +233,9 @@ class SalesReportService
             foreach ($rows as $id => $row) {
                 $code = mb_convert_encoding($row['OrderDetail']->getProductCode(), $encoding, 'UTF-8');
                 $name = $row['OrderDetail']->getProductName().' '.$row['OrderDetail']->getClassCategoryName1().' '.$row['OrderDetail']->getClassCategoryName2();
+                if (preg_match('~^[=+\-@]~', $name)) {
+                    $name = '\'' . $name;
+                }
                 $name = mb_convert_encoding($name, $encoding, 'UTF-8');
                 fputcsv($handle, [$code, $name, $row['time'], $row['quantity'], $row['total']], $separator);
             }
