@@ -35,7 +35,11 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
         window.onload = function () {
             var dataSet = graphData.datasets;
             graphData.datasets = [dataSet];
-            //create pie chart
+            let graphWidth = 0.8;
+            if (graphData.labels.length < 5) {
+                graphWidth = 0.3;
+            }
+            //create bar chart
             if (graphData != null) {
                 var config = {
                     type: 'bar',
@@ -64,7 +68,8 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
                                 ticks: {
                                     minRotation: 90,
                                     maxRotation: 90
-                                }
+                                },
+                                categoryPercentage: graphWidth
                             }],
                             yAxes: [{
                                 ticks: {
