@@ -33,10 +33,10 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
     <script>
         var graphData = {{ graphData|raw }};
         window.onload = function () {
-            var dataSet = graphData.datasets;
-            graphData.datasets = [dataSet];
             //create pie chart
             if (graphData != null) {
+                var dataSet = graphData.datasets;
+                graphData.datasets = [dataSet];
                 var config = {
                     type: 'bar',
                     data: graphData,
