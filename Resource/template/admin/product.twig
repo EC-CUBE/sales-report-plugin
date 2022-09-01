@@ -39,8 +39,9 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
             if (graphData.labels.length < 5) {
                 graphWidth = 0.3;
             }
-            //create bar chart
             if (graphData != null) {
+                var dataSet = graphData.datasets;
+                graphData.datasets = [dataSet];
                 var config = {
                     type: 'bar',
                     data: graphData,
