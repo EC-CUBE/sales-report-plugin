@@ -33,15 +33,13 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
     <script>
         var graphData = {{ graphData|raw }};
         window.onload = function () {
-            var dataSet = graphData.datasets;
-            graphData.datasets = [dataSet];
-            let graphWidth = 0.8;
-            if (graphData.labels.length < 5) {
-                graphWidth = 0.3;
-            }
             if (graphData != null) {
                 var dataSet = graphData.datasets;
                 graphData.datasets = [dataSet];
+                let graphWidth = 0.8;
+                if (graphData.labels.length < 5) {
+                    graphWidth = 0.3;
+                }
                 var config = {
                     type: 'bar',
                     data: graphData,
