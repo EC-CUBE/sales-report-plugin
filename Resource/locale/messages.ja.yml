@@ -1,3 +1,4 @@
+sales_report.form_error.out_of_range: 不正な日付です。
 sales_report.admin.type.monthly.error: 集計月を選択してください。
 sales_report.admin.type.term_start.error: 集計期間を正しく選択してください。
 sales_report.admin.label.monthly_year: 年
