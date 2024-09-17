@@ -69,6 +69,12 @@ class SalesReportType extends AbstractType
                     'data-target' => '#'.$this->getBlockPrefix().'_term_start',
                     'data-toggle' => 'datetimepicker',
                 ],
+                'constraints' => [
+                    new Assert\Range([
+                        'min'=> '0003-01-01',
+                        'minMessage' => trans('sales_report.form_error.out_of_range'),
+                    ]),
+                ],
             ])
             ->add('term_end', DateType::class, [
                 'label' => 'sales_report.admin.label.term_end',
@@ -81,6 +87,12 @@ class SalesReportType extends AbstractType
                     'class' => 'datetimepicker-input',
                     'data-target' => '#'.$this->getBlockPrefix().'_term_end',
                     'data-toggle' => 'datetimepicker',
+                ],
+                'constraints' => [
+                    new Assert\Range([
+                        'min'=> '0003-01-01',
+                        'minMessage' => trans('sales_report.form_error.out_of_range'),
+                    ]),
                 ],
             ])
             ->add('unit', ChoiceType::class, [
