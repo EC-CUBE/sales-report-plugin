@@ -107,11 +107,13 @@ class SalesReportController extends AbstractController
             $exportSeparator = $this->eccubeConfig['eccube_csv_export_separator'];
             $exportEncoding = $this->eccubeConfig['eccube_csv_export_encoding'];
             // Export data by type
+            // 集計結果が 0 件のとき $data['raw'] は null になる。export メソッドは
+            // array 型を要求するため、空配列を渡してヘッダ行のみの CSV を出力する。
             match ($type) {
-                'term' => $this->salesReportService->exportTermCsv($data['raw'], $exportSeparator, $exportEncoding),
-                'product' => $this->salesReportService->exportProductCsv($data['raw'], $exportSeparator, $exportEncoding),
-                'age' => $this->salesReportService->exportAgeCsv($data['raw'], $exportSeparator, $exportEncoding),
-                default => $this->salesReportService->exportTermCsv($data['raw'], $exportSeparator, $exportEncoding),
+                'term' => $this->salesReportService->exportTermCsv($data['raw'] ?? [], $exportSeparator, $exportEncoding),
+                'product' => $this->salesReportService->exportProductCsv($data['raw'] ?? [], $exportSeparator, $exportEncoding),
+                'age' => $this->salesReportService->exportAgeCsv($data['raw'] ?? [], $exportSeparator, $exportEncoding),
+                default => $this->salesReportService->exportTermCsv($data['raw'] ?? [], $exportSeparator, $exportEncoding),
             };
         });
 
