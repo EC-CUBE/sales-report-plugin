@@ -5,48 +5,44 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport42\Controller;
+namespace Plugin\SalesReport44\Controller;
 
 use Eccube\Controller\AbstractController;
-use Plugin\SalesReport42\Form\Type\SalesReportType;
-use Plugin\SalesReport42\Service\SalesReportService;
+use Plugin\SalesReport44\Form\Type\SalesReportType;
+use Plugin\SalesReport44\Service\SalesReportService;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Class SalesReportController.
  */
 class SalesReportController extends AbstractController
 {
-    /** @var SalesReportService */
-    protected $salesReportService;
-
     /**
      * SalesReportController constructor.
      *
      * @param SalesReportService $salesReportService
      */
-    public function __construct(SalesReportService $salesReportService)
-    {
-        $this->salesReportService = $salesReportService;
+    public function __construct(
+        protected SalesReportService $salesReportService,
+    ) {
     }
 
     /**
      * 期間別集計.
      *
      * @param Request $request
-     * @Route("%eccube_admin_route%/plugin/sales_report/term", name="sales_report_admin_term")
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function term(Request $request)
+    #[Route(path: '%eccube_admin_route%/plugin/sales_report/term', name: 'sales_report_admin_term')]
+    public function term(Request $request): Response
     {
         return $this->response($request, 'term');
     }
@@ -55,11 +51,9 @@ class SalesReportController extends AbstractController
      * 商品別集計.
      *
      * @param Request $request
-     * @Route("%eccube_admin_route%/plugin/sales_report/product", name="sales_report_admin_product")
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function product(Request $request)
+    #[Route(path: '%eccube_admin_route%/plugin/sales_report/product', name: 'sales_report_admin_product')]
+    public function product(Request $request): Response
     {
         return $this->response($request, 'product');
     }
@@ -68,11 +62,9 @@ class SalesReportController extends AbstractController
      * 年代別集計.
      *
      * @param Request $request
-     * @Route("%eccube_admin_route%/plugin/sales_report/age", name="sales_report_admin_age")
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function age(Request $request)
+    #[Route(path: '%eccube_admin_route%/plugin/sales_report/age', name: 'sales_report_admin_age')]
+    public function age(Request $request): Response
     {
         return $this->response($request, 'age');
     }
@@ -82,11 +74,9 @@ class SalesReportController extends AbstractController
      *
      * @param Request $request
      * @param string $type
-     * @Route("%eccube_admin_route%/plugin/sales_report/export/{type}", name="sales_report_admin_export", methods={"POST"})
-     *
-     * @return StreamedResponse
      */
-    public function export(Request $request, $type)
+    #[Route(path: '%eccube_admin_route%/plugin/sales_report/export/{type}', name: 'sales_report_admin_export', methods: ['POST'])]
+    public function export(Request $request, $type): StreamedResponse
     {
         set_time_limit(0);
         $response = new StreamedResponse();
@@ -113,40 +103,26 @@ class SalesReportController extends AbstractController
                 ->getData();
         }
 
-        $response->setCallback(function () use ($data, $request, $type) {
+        $response->setCallback(function () use ($data, $type) {
             $exportSeparator = $this->eccubeConfig['eccube_csv_export_separator'];
             $exportEncoding = $this->eccubeConfig['eccube_csv_export_encoding'];
             // Export data by type
-            switch ($type) {
-                case 'term':
-                    $this->salesReportService->exportTermCsv($data['raw'], $exportSeparator, $exportEncoding);
-                    break;
-                case 'product':
-                    $this->salesReportService->exportProductCsv($data['raw'], $exportSeparator, $exportEncoding);
-                    break;
-                case 'age':
-                    $this->salesReportService->exportAgeCsv($data['raw'], $exportSeparator, $exportEncoding);
-                    break;
-                default:
-                    $this->salesReportService->exportTermCsv($data['raw'], $exportSeparator, $exportEncoding);
-            }
+            match ($type) {
+                'term' => $this->salesReportService->exportTermCsv($data['raw'], $exportSeparator, $exportEncoding),
+                'product' => $this->salesReportService->exportProductCsv($data['raw'], $exportSeparator, $exportEncoding),
+                'age' => $this->salesReportService->exportAgeCsv($data['raw'], $exportSeparator, $exportEncoding),
+                default => $this->salesReportService->exportTermCsv($data['raw'], $exportSeparator, $exportEncoding),
+            };
         });
 
         // Set filename by type
         $now = new \DateTime();
-        switch ($type) {
-            case 'term':
-                $filename = 'salesreport_term_'.$now->format('YmdHis').'.csv';
-                break;
-            case 'product':
-                $filename = 'salesreport_product_'.$now->format('YmdHis').'.csv';
-                break;
-            case 'age':
-                $filename = 'salesreport_age_'.$now->format('YmdHis').'.csv';
-                break;
-            default:
-                $filename = 'salesreport_term_'.$now->format('YmdHis').'.csv';
-        }
+        $filename = match ($type) {
+            'term' => 'salesreport_term_'.$now->format('YmdHis').'.csv',
+            'product' => 'salesreport_product_'.$now->format('YmdHis').'.csv',
+            'age' => 'salesreport_age_'.$now->format('YmdHis').'.csv',
+            default => 'salesreport_term_'.$now->format('YmdHis').'.csv',
+        };
 
         $response->headers->set('Content-Type', 'application/octet-stream;');
         $response->headers->set('Content-Disposition', 'attachment; filename='.$filename);
@@ -160,11 +136,9 @@ class SalesReportController extends AbstractController
      * direct by report type(default term).
      *
      * @param Request $request
-     * @param null $reportType
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param string|null $reportType
      */
-    private function response(Request $request, $reportType = null)
+    private function response(Request $request, ?string $reportType = null): Response
     {
         $builder = $this->formFactory
             ->createBuilder(SalesReportType::class);
@@ -200,7 +174,7 @@ class SalesReportController extends AbstractController
         log_info('SalesReport Plugin : render ', ['template' => $template]);
 
         return $this->render(
-            '@SalesReport42/admin/'.$template.'.twig',
+            '@SalesReport44/admin/'.$template.'.twig',
             [
                 'form' => $form->createView(),
                 'graphData' => json_encode($data['graph']),
@@ -214,12 +188,12 @@ class SalesReportController extends AbstractController
     /**
      * get option params for render.
      *
-     * @param $termType
-     * @param $searchData
+     * @param string $termType
+     * @param array<string, mixed> $searchData
      *
-     * @return array options
+     * @return array<string, mixed> options
      */
-    private function getRenderOptions($termType, $searchData)
+    private function getRenderOptions(string $termType, array $searchData): array
     {
         $options = [];
 

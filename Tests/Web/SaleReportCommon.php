@@ -5,13 +5,13 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport42\Tests\Web;
+namespace Plugin\SalesReport44\Tests\Web;
 
 use Eccube\Entity\Customer;
 use Eccube\Entity\Master\OrderStatus;
@@ -48,9 +48,9 @@ class SaleReportCommon extends AbstractAdminWebTestCase
      *
      * @param int $number
      *
-     * @return array
+     * @return array<int, int>
      */
-    public function createCustomerByNumber($number = 5)
+    public function createCustomerByNumber(int $number = 5): array
     {
         $arrCustomer = [];
         $current = new \DateTime();
@@ -73,9 +73,9 @@ class SaleReportCommon extends AbstractAdminWebTestCase
      *
      * @param int $number
      *
-     * @return array $arrOrder
+     * @return array<int, Order> $arrOrder
      */
-    public function createOrderByCustomer($number = 5)
+    public function createOrderByCustomer(int $number = 5): array
     {
         $arrCustomer = $this->createCustomerByNumber($number);
         $current = new \DateTime();
@@ -97,7 +97,7 @@ class SaleReportCommon extends AbstractAdminWebTestCase
      * @param Order[] $Orders
      * @param TaxRule $TaxRule
      */
-    public function changeOrderDetail($Orders, $TaxRule)
+    public function changeOrderDetail(array $Orders, TaxRule $TaxRule): void
     {
         /** @var Order $Order */
         foreach ($Orders as $Order) {
@@ -106,11 +106,11 @@ class SaleReportCommon extends AbstractAdminWebTestCase
             foreach ($Order->getOrderItems() as $orderItem) {
                 /** @var OrderItem $orderItem */
                 if ($orderItem->isProduct()) {
-                    $TaxRate = $TaxRule->getTaxRate() / 100;
+                    $TaxRate = (float) $TaxRule->getTaxRate() / 100;
                     $tax = 500 * $TaxRate;
-                    $orderItem->setPrice(500);
-                    $orderItem->setQuantity(1);
-                    $orderItem->setTax($tax);
+                    $orderItem->setPrice((string) 500);
+                    $orderItem->setQuantity((string) 1);
+                    $orderItem->setTax((string) $tax);
                     $this->entityManager->persist($orderItem);
                     $this->entityManager->flush();
                     $totalTax += $tax;
@@ -118,9 +118,9 @@ class SaleReportCommon extends AbstractAdminWebTestCase
                 }
             }
 
-            $Order->setSubtotal($total);
-            $Order->setTotal($total);
-            $Order->setTax($totalTax);
+            $Order->setSubtotal((string) $total);
+            $Order->setTotal((string) $total);
+            $Order->setTax((string) $totalTax);
             $this->entityManager->persist($Order);
             $this->entityManager->flush();
         }

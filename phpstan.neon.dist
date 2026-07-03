@@ -1,0 +1,14 @@
+parameters:
+    level: 6
+    paths:
+        - .
+    excludePaths:
+        - Resource/*
+        - Tests/bootstrap.php
+    ignoreErrors:
+        # EntityManager::getRepository() の PHPStan スタブは EntityRepository<T> を返すが、
+        # EC-CUBE では実行時に具象 Repository（CustomerRepository 等）が返る。
+        # テストのプロパティ型（具象 Repository）は正しいため無視する。
+        -
+            message: '#does not accept Doctrine\\ORM\\EntityRepository<#'
+            path: Tests/*
