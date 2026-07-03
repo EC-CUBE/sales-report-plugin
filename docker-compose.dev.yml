@@ -20,9 +20,6 @@ services:
       bin/console cache:clear &&
       apache2-foreground
       "
-    environment:
-      USER_ID: ${UID:-}
-      GROUP_ID: ${GID:-}
     volumes:
       - ".:/var/www/plugin:cached"
       # 開発環境(HTTP)でログインできるよう Cookie 設定を上書き
