@@ -97,7 +97,7 @@ class SalesReportService
     public function __construct(
         protected EntityManagerInterface $entityManager,
         private EccubeConfig $eccubeConfig,
-        private BaseInfoRepository $baseInfoRepository,
+        private readonly BaseInfoRepository $baseInfoRepository,
     ) {
     }
 
