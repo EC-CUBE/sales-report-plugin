@@ -114,6 +114,21 @@ Plugin\:
 
 ### プラグインの導入方法（tar + plugin:install）
 
-`docker-compose.dev.yml` はマウントしたプラグインを `./*` で tar 化し `eccube:plugin:install --path` で導入する。
-`eccube:composer:require` はパッケージ API（`extra.id`）を要求するため path プラグインでは使えない。また
-**`PharData` は先頭の `./` エントリで展開に失敗する**ため、プラグインディレクトリ内で `./*` を対象に tar 化する（`-C dir .` は不可）。
+`docker-compose.dev.yml` はマウントしたプラグインを `./*` で tar 化し、`app/Plugin/SalesReport44` へ展開してから
+`eccube:plugin:install --code` で導入する。`eccube:composer:require` はパッケージ API（`extra.id`）を要求するため
+path プラグインでは使えない。tar を経由するのは `--exclude` で docker 関連ファイルを配布物から除くためで、
+`PharData` を使わない（`tar xzf` で展開する）ので `./` 先頭エントリの制約は受けない。
+
+**`--path` は使わないこと（`docker compose up` の 2 回目以降が失敗する）**: EC-CUBE 4.4 の
+`PluginInstallCommand` は
+
+```php
+public function install(string $path, int $source = 0, bool $notExists = false): bool
+```
+
+を `install($path, $ifNotExists)` と 2 引数で呼ぶため、`--if-not-exists` が `$source` に入り `$notExists` は
+`false` のままになる。結果として `--if-not-exists` が無効化され、インストール済みの状態で再起動すると
+`plugin already installed.` で entrypoint が異常終了する（`dtb_plugin.source` が `1` になっていれば本症状）。
+`--code` 側の `installWithCode($code, $notExists)` は引数位置が正しいため `--if-not-exists` が機能する。
+
+なお CI（`.github/workflows/main.yml`）は毎回クリーンな runner で 1 回だけ導入するため `--path` のままで問題ない。

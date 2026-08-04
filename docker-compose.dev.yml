@@ -1,10 +1,14 @@
 services:
   ec-cube:
     # 1. EC-CUBE 本体を初回起動時に自動インストール（installer-scripts で fixtures も投入）
-    # 2. マウントしたプラグインを tar 化し eccube:plugin:install でインストール
+    # 2. マウントしたプラグインを tar 化し、app/Plugin/ へ展開してからインストール
     #    （eccube:composer:require はパッケージ API が必要なため path プラグインでは使えない）
-    #    PharData は先頭の "./" エントリで失敗するため、プラグインディレクトリ内で
-    #    "./*" を対象に tar 化する（ドットファイル/docker 関連は除外される）
+    #    tar 経由にしているのは --exclude で docker 関連ファイルを配布物から除くため。
+    #    導入は --path ではなく「設置済みファイルからインストール」する --code を使う。
+    #    --path 側は EC-CUBE 4.4 の PluginInstallCommand が
+    #    PluginService::install(string $path, int $source = 0, bool $notExists = false) を
+    #    install($path, $ifNotExists) と 2 引数で呼ぶため --if-not-exists が $source に入り、
+    #    再起動時に「plugin already installed.」で起動に失敗する（--code 側は引数位置が正しい）。
     # 3. プラグインを有効化してから Apache を起動
     #    eccube:plugin:enable は内部でキャッシュ再生成を行うが、その直後の cache:clear
     #    だけでは管理画面ナビ／ルーティングが確定しないことがあるため、cache:clear を 2 回流す。
@@ -14,7 +18,9 @@ services:
       ( cd /var/www/plugin && tar czf /tmp/SalesReport44.tar.gz
       --exclude='./dockerbuild' --exclude='./docker-compose*'
       --exclude='./var' --exclude='./vendor' --exclude='./node_modules' ./* ) &&
-      bin/console eccube:plugin:install --code=SalesReport44 --path=/tmp/SalesReport44.tar.gz --if-not-exists &&
+      mkdir -p app/Plugin/SalesReport44 &&
+      tar xzf /tmp/SalesReport44.tar.gz -C app/Plugin/SalesReport44 &&
+      bin/console eccube:plugin:install --code=SalesReport44 --if-not-exists &&
       bin/console eccube:plugin:enable --code=SalesReport44 &&
       bin/console cache:clear &&
       bin/console cache:clear &&
