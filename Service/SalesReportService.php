@@ -18,6 +18,8 @@ use Doctrine\ORM\NoResultException;
 use Eccube\Common\EccubeConfig;
 use Eccube\Entity\Master\OrderStatus;
 use Eccube\Entity\Order;
+use Eccube\Repository\BaseInfoRepository;
+use Eccube\Util\CsvFormulaGuard;
 
 /**
  * Class SalesReportService.
@@ -95,7 +97,33 @@ class SalesReportService
     public function __construct(
         protected EntityManagerInterface $entityManager,
         private EccubeConfig $eccubeConfig,
+        private BaseInfoRepository $baseInfoRepository,
     ) {
+    }
+
+    /**
+     * CSV の 1 行を数式インジェクション対策で無害化する.
+     *
+     * 本体の CsvExportService と同じく Eccube\Util\CsvFormulaGuard を使い、
+     * 店舗設定（BaseInfo::isOptionSanitizeCsvFormulas()）の ON/OFF を尊重する。
+     *
+     * @param array<int, mixed> $row
+     *
+     * @return array<int, mixed>
+     */
+    private function sanitizeCsvRow(array $row): array
+    {
+        if (!$this->baseInfoRepository->get()->isOptionSanitizeCsvFormulas()) {
+            return $row;
+        }
+
+        // CsvFormulaGuard::escape() は int|string|null を受けるため、
+        // round() が返す float 等を渡さないよう文字列だけを対象にする。
+        // （非文字列は escape() でもそのまま返される）
+        return array_map(
+            static fn ($value) => is_string($value) ? CsvFormulaGuard::escape($value) : $value,
+            $row
+        );
     }
 
     /**
@@ -220,7 +248,7 @@ class SalesReportService
                 $code = mb_convert_encoding($row['OrderDetail']->getProductCode(), $encoding, 'UTF-8');
                 $name = $row['OrderDetail']->getProductName().' '.$row['OrderDetail']->getClassCategoryName1().' '.$row['OrderDetail']->getClassCategoryName2();
                 $name = mb_convert_encoding($name, $encoding, 'UTF-8');
-                fputcsv($handle, [$code, $name, $row['time'], $row['quantity'], $row['total']], $separator);
+                fputcsv($handle, $this->sanitizeCsvRow([$code, $name, $row['time'], $row['quantity'], $row['total']]), $separator);
             }
             fclose($handle);
         } catch (\Exception $e) {
@@ -252,7 +280,7 @@ class SalesReportService
                 } else {
                     $money = 0;
                 }
-                fputcsv($handle, [$date, $row['time'], $row['male'], $row['female'], $row['other'], $row['member_male'], $row['nonmember_male'], $row['member_female'], $row['nonmember_female'], $row['price'], $money], $separator);
+                fputcsv($handle, $this->sanitizeCsvRow([$date, $row['time'], $row['male'], $row['female'], $row['other'], $row['member_male'], $row['nonmember_male'], $row['member_female'], $row['nonmember_female'], $row['price'], $money]), $separator);
             }
             fclose($handle);
         } catch (\Exception $e) {
@@ -291,7 +319,7 @@ class SalesReportService
                 } else {
                     $age = mb_convert_encoding($age.trans('sales_report.admin.age.list.002'), $encoding, 'UTF-8');
                 }
-                fputcsv($handle, [$age, $row['time'], $row['total'], $money], $separator);
+                fputcsv($handle, $this->sanitizeCsvRow([$age, $row['time'], $row['total'], $money]), $separator);
             }
             fclose($handle);
         } catch (\Exception $e) {
