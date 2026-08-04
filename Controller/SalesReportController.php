@@ -75,8 +75,8 @@ class SalesReportController extends AbstractController
      * @param Request $request
      * @param string $type
      */
-    #[Route(path: '%eccube_admin_route%/plugin/sales_report/export/{type}', name: 'sales_report_admin_export', methods: ['POST'])]
-    public function export(Request $request, $type): StreamedResponse
+    #[Route(path: '%eccube_admin_route%/plugin/sales_report/export/{type}', name: 'sales_report_admin_export', methods: ['POST'], requirements: ['type' => 'term|product|age'])]
+    public function export(Request $request, string $type): StreamedResponse
     {
         set_time_limit(0);
         $response = new StreamedResponse();

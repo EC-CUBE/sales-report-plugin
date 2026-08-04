@@ -119,14 +119,4 @@ class SalesReportType extends AbstractType
             })
         ;
     }
-
-    /**
-     * get sale report form name.
-     *
-     * @return string
-     */
-    public function getName(): string
-    {
-        return 'sales_report';
-    }
 }
