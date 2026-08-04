@@ -14,6 +14,8 @@ on:
     paths:
       - '**'
       - '!*.md'
+permissions:
+  contents: read
 jobs:
   run-on-linux:
     name: Run on Linux
@@ -28,15 +30,15 @@ jobs:
         include:
           - db: mysql8
             database_url: mysql://root:password@127.0.0.1:3308/eccube_db
-            database_server_version: 8
+            database_server_version: '8.4'
             database_charset: utf8mb4
           - db: pgsql
             database_url: postgres://postgres:password@127.0.0.1:5432/eccube_db
-            database_server_version: 14
+            database_server_version: '18'
             database_charset: utf8
     services:
       mysql8:
-        image: mysql:8
+        image: mysql:8.4
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: ${{ matrix.dbname }}
@@ -44,7 +46,7 @@ jobs:
           - 3308:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
       postgres:
-        image: postgres:14
+        image: postgres:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -61,6 +63,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
         uses: nanasess/setup-php@master
@@ -78,6 +82,7 @@ jobs:
           repository: 'EC-CUBE/ec-cube'
           ref: ${{ matrix.eccube_version }}
           path: 'ec-cube'
+          persist-credentials: false
 
       - name: Get Composer Cache Directory
         id: composer-cache
@@ -175,6 +180,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup PHP
         uses: nanasess/setup-php@master
@@ -190,6 +197,7 @@ jobs:
           repository: 'EC-CUBE/ec-cube'
           ref: '4.4'
           path: 'ec-cube'
+          persist-credentials: false
 
       - name: Get Composer Cache Directory
         id: composer-cache
