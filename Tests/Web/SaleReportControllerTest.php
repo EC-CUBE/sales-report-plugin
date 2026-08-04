@@ -237,6 +237,34 @@ class SaleReportControllerTest extends SaleReportCommon
     }
 
     /**
+     * 画面をまたぐ操作で期間別 CSV の出力が失敗しないことのテスト.
+     *
+     * 商品別/年代別の画面は集計単位 (unit) のフォーム項目を持たないため、
+     * 3 画面で共通のセッションキーに unit を含まない検索条件が保存される。
+     * その状態で期間別の CSV を出力しても集計単位の既定値で処理が続くことを確認する。
+     */
+    public function testExportTermAfterOtherReport(): void
+    {
+        $this->createOrderByCustomer(5);
+        $current = new \DateTime();
+
+        // 商品別集計を実行し、unit を含まない検索条件をセッションに保存させる
+        $this->client->request('POST', $this->generateUrl('sales_report_admin_product'), [
+            'sales_report' => [
+                'term_type' => 'term',
+                'term_start' => (clone $current)->modify('-15 days')->format('Y-m-d'),
+                'term_end' => (clone $current)->modify('+15 days')->format('Y-m-d'),
+                '_token' => 'dummy',
+            ],
+        ]);
+        $this->assertTrue($this->client->getResponse()->isSuccessful());
+
+        // 続けて期間別の CSV をダウンロードする
+        $this->client->request('POST', $this->generateUrl('sales_report_admin_export', ['type' => 'term']));
+        $this->assertTrue($this->client->getResponse()->isSuccessful());
+    }
+
+    /**
      * data report provider.
      *
      * @return array<int, array<int, mixed>>

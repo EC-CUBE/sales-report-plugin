@@ -115,12 +115,12 @@ class SalesReportService
     /**
      * set term from , to.
      *
-     * @param string $termType
+     * @param string|null $termType 未指定 (null) の場合は期間集計として扱う
      * @param array<string, mixed> $request
      *
      * @return SalesReportService
      */
-    public function setTerm(string $termType, array $request): self
+    public function setTerm(?string $termType, array $request): self
     {
         if ($termType === 'monthly') {
             // 月度集計
@@ -148,10 +148,11 @@ class SalesReportService
             $this->setTermEnd($end);
         }
 
-        // 集計単位を設定
-        if (isset($request['unit'])) {
-            $this->unit = $request['unit'];
-        }
+        // 集計単位を設定。
+        // 商品別/年代別の画面は集計単位のフォーム項目を持たないため、3 画面で共通の
+        // セッションキーには unit を含まない検索条件が保存されることがある。
+        // 未指定のまま期間別の集計に進むと集計単位が決まらないため既定値を入れる。
+        $this->unit = $request['unit'] ?? 'byDay';
 
         return $this;
     }
@@ -372,7 +373,8 @@ class SalesReportService
             'byHour' => 'H',
         ];
 
-        return $unit[$this->unit];
+        // setTerm() を経由しない場合や未知の集計単位が渡った場合も日付書式を決められるようにする
+        return $unit[$this->unit] ?? $unit['byDay'];
     }
 
     /**
