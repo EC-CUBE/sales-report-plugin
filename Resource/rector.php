@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+if (php_sapi_name() !== 'cli') {
+    throw new \LogicException();
+}
+
 /*
  * This file is part of EC-CUBE
  *
