@@ -40,45 +40,45 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
                 if (graphData.labels.length < 5) {
                     graphWidth = 0.3;
                 }
+                // Chart.js 3 以降 categoryPercentage は軸ではなくデータセットのオプション
+                dataSet.categoryPercentage = graphWidth;
                 var config = {
                     type: 'bar',
                     data: graphData,
                     options: {
                         responsive: true,
-                        title: {
-                            display: true,
-                            text: "{{ 'sales_report.admin.product.001'|trans }}" + {{ eccube_config.sales_report_product_maximum_display }} +"{{ 'sales_report.admin.product.002'|trans }}"
-                        },
-                        tooltips: {
-                            callbacks: {
-                                label: function tooltipsRender(tooltipItem, graphData) {
-                                    var index = tooltipItem.index;
-                                    var tooltipData = graphData.datasets[0].data[index];
-                                    var tooltipLabel = graphData.labels[index];
-                                    return tooltipLabel + ' : {{ 'sales_report.admin.money.code'|trans }}' + moneyFormat(tooltipData);
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: "{{ 'sales_report.admin.product.001'|trans }}" + {{ eccube_config.sales_report_product_maximum_display }} +"{{ 'sales_report.admin.product.002'|trans }}"
+                            },
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        return context.label + ' : {{ 'sales_report.admin.money.code'|trans }}' + moneyFormat(context.parsed.y);
+                                    }
                                 }
                             }
                         },
-                        legend: {
-                            display: false
-                        },
                         scales: {
-                            xAxes: [{
+                            x: {
                                 ticks: {
                                     minRotation: 90,
                                     maxRotation: 90
-                                },
-                                categoryPercentage: graphWidth
-                            }],
-                            yAxes: [{
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                suggestedMin: 0,
                                 ticks: {
                                     callback: function (value) {
                                         return Math.round(value).toString().replace(/(\d)(?=(\d{3})+$)/g, '$1,');
-                                    },
-                                    beginAtZero: true,
-                                    suggestedMin: 0
+                                    }
                                 }
-                            }]
+                            }
                         }
                     }
                 };

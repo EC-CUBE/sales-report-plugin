@@ -37,35 +37,33 @@ Copyright (C) EC-CUBE CO.,LTD. All Rights Reserved.
             if (graphData != null) {
                 var dataSet = graphData.datasets;
                 graphData.datasets = [dataSet];
+                // Chart.js 3 以降 categoryPercentage は軸ではなくデータセットのオプション
+                dataSet.categoryPercentage = 0.3;
                 var config = {
                     type: 'bar',
                     data: graphData,
                     options: {
                         responsive: true,
-                        tooltips: {
-                            callbacks: {
-                                label: function tooltipsRender(tooltipItem, graphData) {
-                                    var index = tooltipItem.index;
-                                    var tooltipData = graphData.datasets[0].data[index];
-                                    var tooltipLabel = graphData.labels[index];
-                                    return '{{ 'sales_report.admin.money'|trans }}' + moneyFormat(tooltipData);
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        return '{{ 'sales_report.admin.money'|trans }}' + moneyFormat(context.parsed.y);
+                                    }
                                 }
                             }
                         },
-                        legend: {
-                            display: false
-                        },
                         scales: {
-                            xAxes: [{
-                                categoryPercentage: 0.3
-                            }],
-                            yAxes: [{
+                            y: {
                                 ticks: {
                                     callback: function (value) {
                                         return Math.round(value).toString().replace(/(\d)(?=(\d{3})+$)/g, '$1,');
                                     }
                                 }
-                            }]
+                            }
                         }
                     }
                 };
