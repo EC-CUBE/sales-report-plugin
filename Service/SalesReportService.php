@@ -5,20 +5,19 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport42\Service;
+namespace Plugin\SalesReport44\Service;
 
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NoResultException;
 use Eccube\Common\EccubeConfig;
 use Eccube\Entity\Master\OrderStatus;
-use Symfony\Component\HttpFoundation\Request;
+use Eccube\Entity\Order;
 
 /**
  * Class SalesReportService.
@@ -26,22 +25,17 @@ use Symfony\Component\HttpFoundation\Request;
 class SalesReportService
 {
     /**
-     * @var EccubeConfig
-     */
-    private $eccubeConfig;
-
-    /**
      * @var string
      */
     private $reportType;
 
     /**
-     * @var \DateTime
+     * @var string
      */
     private $termStart;
 
     /**
-     * @var \DateTime
+     * @var string
      */
     private $termEnd;
 
@@ -51,7 +45,7 @@ class SalesReportService
     private $unit;
 
     /**
-     * @var array
+     * @var array<int, string>
      */
     private $productCsvHeader = [
         'sales_report.admin.productCsvHeader.001',
@@ -62,7 +56,7 @@ class SalesReportService
     ];
 
     /**
-     * @var array
+     * @var array<int, string>
      */
     private $termCsvHeader = [
         'sales_report.admin.termCsvHeader.001',
@@ -79,7 +73,7 @@ class SalesReportService
     ];
 
     /**
-     * @var array
+     * @var array<int, string>
      */
     private $ageCsvHeader = [
         'sales_report.admin.ageCsvHeader.001',
@@ -88,18 +82,9 @@ class SalesReportService
         'sales_report.admin.ageCsvHeader.004',
     ];
 
-    /**
-     * @var int
-     */
-    const MALE = 1;
+    public const MALE = 1;
 
-    /**
-     * @var int
-     */
-    const FEMALE = 2;
-
-    /** @var EntityManagerInterface */
-    protected $entityManager;
+    public const FEMALE = 2;
 
     /**
      * SalesReportService constructor.
@@ -107,10 +92,10 @@ class SalesReportService
      * @param EntityManagerInterface $entityManager
      * @param EccubeConfig $eccubeConfig
      */
-    public function __construct(EntityManagerInterface $entityManager, EccubeConfig $eccubeConfig)
-    {
-        $this->entityManager = $entityManager;
-        $this->eccubeConfig = $eccubeConfig;
+    public function __construct(
+        protected EntityManagerInterface $entityManager,
+        private EccubeConfig $eccubeConfig,
+    ) {
     }
 
     /**
@@ -120,7 +105,7 @@ class SalesReportService
      *
      * @return SalesReportService
      */
-    public function setReportType($reportType)
+    public function setReportType(string $reportType): self
     {
         $this->reportType = $reportType;
 
@@ -130,19 +115,19 @@ class SalesReportService
     /**
      * set term from , to.
      *
-     * @param string $termType
-     * @param Request $request
+     * @param string|null $termType 未指定 (null) の場合は期間集計として扱う
+     * @param array<string, mixed> $request
      *
      * @return SalesReportService
      */
-    public function setTerm($termType, $request)
+    public function setTerm(?string $termType, array $request): self
     {
         if ($termType === 'monthly') {
             // 月度集計
             $year = $request['monthly_year'];
             $month = $request['monthly_month'];
 
-            $date = new DateTime();
+            $date = new \DateTime();
             $date->setDate($year, $month, 1)->setTime(0, 0, 0);
 
             $start = $date->format('Y-m-d G:i:s');
@@ -163,10 +148,11 @@ class SalesReportService
             $this->setTermEnd($end);
         }
 
-        // 集計単位を設定
-        if (isset($request['unit'])) {
-            $this->unit = $request['unit'];
-        }
+        // 集計単位を設定。
+        // 商品別/年代別の画面は集計単位のフォーム項目を持たないため、3 画面で共通の
+        // セッションキーには unit を含まない検索条件が保存されることがある。
+        // 未指定のまま期間別の集計に進むと集計単位が決まらないため既定値を入れる。
+        $this->unit = $request['unit'] ?? 'byDay';
 
         return $this;
     }
@@ -174,9 +160,9 @@ class SalesReportService
     /**
      * query and get order data.
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function getData()
+    public function getData(): array
     {
         $excludes = [
             OrderStatus::CANCEL,
@@ -189,15 +175,15 @@ class SalesReportService
         $qb = $this->entityManager->createQueryBuilder();
         $qb
             ->select('o')
-            ->from('Eccube\Entity\Order', 'o')
+            ->from(Order::class, 'o')
             ->andWhere('o.order_date >= :start')
             ->andWhere('o.order_date < :end')
             ->andWhere('o.OrderStatus NOT IN (:excludes)')
             ->setParameter(':excludes', $excludes)
-            ->setParameter(':start', new DateTime($this->termStart))
-            ->setParameter(':end', new DateTime($this->termEnd));
+            ->setParameter(':start', new \DateTime($this->termStart))
+            ->setParameter(':end', new \DateTime($this->termEnd));
         if ($this->reportType === 'product') {
-            $qb->addSelect('oi')->innerJoin("o.OrderItems", "oi", "WITH", "oi.OrderItemType = 1");
+            $qb->addSelect('oi')->innerJoin('o.OrderItems', 'oi', 'WITH', 'oi.OrderItemType = 1');
         }
 
         log_info('SalesReport Plugin : search parameters ', ['From' => $this->termStart, 'To' => $this->termEnd]);
@@ -214,22 +200,22 @@ class SalesReportService
     /**
      * get product report csv.
      *
-     * @param array $rows
+     * @param array<int|string, mixed> $rows
      * @param string $separator
      * @param string $encoding
      */
-    public function exportProductCsv($rows, $separator, $encoding)
+    public function exportProductCsv(array $rows, string $separator, string $encoding): void
     {
         try {
             $handle = fopen('php://output', 'w+');
             $headers = $this->productCsvHeader;
             $headerRow = [];
-            //convert header to encoding
+            // convert header to encoding
             foreach ($headers as $header) {
                 $headerRow[] = mb_convert_encoding(trans($header), $encoding, 'UTF-8');
             }
             fputcsv($handle, $headerRow, $separator);
-            //convert data to encoding
+            // convert data to encoding
             foreach ($rows as $id => $row) {
                 $code = mb_convert_encoding($row['OrderDetail']->getProductCode(), $encoding, 'UTF-8');
                 $name = $row['OrderDetail']->getProductName().' '.$row['OrderDetail']->getClassCategoryName1().' '.$row['OrderDetail']->getClassCategoryName2();
@@ -245,17 +231,17 @@ class SalesReportService
     /**
      * get term report csv.
      *
-     * @param array $rows
+     * @param array<int|string, mixed> $rows
      * @param string $separator
      * @param string $encoding
      */
-    public function exportTermCsv($rows, $separator, $encoding)
+    public function exportTermCsv(array $rows, string $separator, string $encoding): void
     {
         try {
             $handle = fopen('php://output', 'w+');
             $headers = $this->termCsvHeader;
             $headerRow = [];
-            //convert header to encoding
+            // convert header to encoding
             foreach ($headers as $header) {
                 $headerRow[] = mb_convert_encoding(trans($header), $encoding, 'UTF-8');
             }
@@ -277,17 +263,17 @@ class SalesReportService
     /**
      * get age report csv.
      *
-     * @param array $rows
+     * @param array<int|string, mixed> $rows
      * @param string $separator
      * @param string $encoding
      */
-    public function exportAgeCsv($rows, $separator, $encoding)
+    public function exportAgeCsv(array $rows, string $separator, string $encoding): void
     {
         try {
             $handle = fopen('php://output', 'w+');
             $headers = $this->ageCsvHeader;
             $headerRow = [];
-            //convert header to encoding
+            // convert header to encoding
             foreach ($headers as $header) {
                 $headerRow[] = mb_convert_encoding(trans($header), $encoding, 'UTF-8');
             }
@@ -298,7 +284,7 @@ class SalesReportService
                 } else {
                     $money = 0;
                 }
-                //convert from number to japanese.
+                // convert from number to japanese.
                 if ($age == 999) {
                     $age = trans('sales_report.admin.age.list.001');
                     $age = mb_convert_encoding($age, $encoding, 'UTF-8');
@@ -316,11 +302,11 @@ class SalesReportService
     /**
      * setTermStart.
      *
-     * @param \DateTime $term
+     * @param string $term
      *
      * @return SalesReportService
      */
-    private function setTermStart($term)
+    private function setTermStart(string $term): self
     {
         $this->termStart = $term;
 
@@ -330,11 +316,11 @@ class SalesReportService
     /**
      * setTermEnd.
      *
-     * @param \DateTime $term
+     * @param string $term
      *
      * @return SalesReportService
      */
-    private function setTermEnd($term)
+    private function setTermEnd(string $term): self
     {
         $this->termEnd = $term;
 
@@ -344,11 +330,11 @@ class SalesReportService
     /**
      * convert to graph data by report type.
      *
-     * @param array $data
+     * @param array<int, mixed> $data
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    private function convert($data)
+    private function convert(array $data): array
     {
         $result = [];
         switch ($this->reportType) {
@@ -356,8 +342,8 @@ class SalesReportService
                 $result = $this->convertByTerm($data);
 
                 if (!empty($result['raw'])) {
-                    foreach($result['raw'] as $date => $value) {
-                        foreach(array_keys($value) as $key) {
+                    foreach ($result['raw'] as $date => $value) {
+                        foreach (array_keys($value) as $key) {
                             $result['raw']['total'][$key] = array_sum(array_column($result['raw'], $key));
                         }
                         break;
@@ -377,10 +363,8 @@ class SalesReportService
 
     /**
      * format unit date time.
-     *
-     * @return array
      */
-    private function formatUnit()
+    private function formatUnit(): string
     {
         $unit = [
             'byDay' => 'Y-m-d',
@@ -389,19 +373,20 @@ class SalesReportService
             'byHour' => 'H',
         ];
 
-        return $unit[$this->unit];
+        // setTerm() を経由しない場合や未知の集計単位が渡った場合も日付書式を決められるようにする
+        return $unit[$this->unit] ?? $unit['byDay'];
     }
 
     /**
      * sort array by value.
      *
      * @param string $field
-     * @param array $array
+     * @param array<int|string, mixed> $array
      * @param string $direction
      *
-     * @return array
+     * @return array<int|string, mixed>
      */
-    private function sortBy($field, &$array, $direction = 'desc')
+    private function sortBy(string $field, array &$array, string $direction = 'desc'): array
     {
         usort($array, function ($a, $b) use ($field, $direction) {
             $a = $a[$field];
@@ -411,9 +396,9 @@ class SalesReportService
             }
             if ($direction === 'desc') {
                 return ($a > $b) ? -1 : 1;
-            } else {
-                return ($a < $b) ? -1 : 1;
             }
+
+            return ($a < $b) ? -1 : 1;
         });
 
         return $array;
@@ -423,10 +408,8 @@ class SalesReportService
      * get background color.
      *
      * @param int $index
-     *
-     * @return array
      */
-    private function getColor($index)
+    private function getColor(int $index): string
     {
         $map = [
             '#F2594B',
@@ -448,15 +431,16 @@ class SalesReportService
     /**
      * period sale report.
      *
-     * @param array $data
+     * @param array<int, mixed> $data
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    private function convertByTerm($data)
+    private function convertByTerm(array $data): array
     {
         $start = new \DateTime($this->termStart);
         $end = new \DateTime($this->termEnd);
         $raw = [];
+        /** @var array<string, mixed> $price */
         $price = [];
         $orderNumber = 0;
         $format = $this->formatUnit();
@@ -558,11 +542,11 @@ class SalesReportService
     /**
      * product sale report.
      *
-     * @param array $data
+     * @param array<int, mixed> $data
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    private function convertByProduct($data)
+    private function convertByProduct(array $data): array
     {
         $label = [];
         $graphData = [];
@@ -591,7 +575,7 @@ class SalesReportService
                 }
             }
         }
-        //sort by total money
+        // sort by total money
         $count = 0;
         $maxDisplayCount = $this->eccubeConfig['sales_report_product_maximum_display'];
         $products = $this->sortBy('total', $products);
@@ -619,7 +603,7 @@ class SalesReportService
             ],
         ];
 
-        //return null and not display in screen
+        // return null and not display in screen
         if ($count == 0) {
             return [
                 'raw' => null,
@@ -636,11 +620,11 @@ class SalesReportService
     /**
      * Age sale report.
      *
-     * @param array $data
+     * @param array<int, mixed> $data
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    private function convertByAge($data)
+    private function convertByAge(array $data): array
     {
         $raw = [];
         $result = [];
@@ -653,7 +637,7 @@ class SalesReportService
             $birth = $Order->getBirth();
             $orderDate = $Order->getOrderDate();
             if ($birth) {
-                $orderDate = ($orderDate) ? $orderDate : new \DateTime();
+                $orderDate = $orderDate ?: new \DateTime();
                 $age = (floor($birth->diff($orderDate)->y / 10) * 10);
             }
             if (!isset($result[$age])) {

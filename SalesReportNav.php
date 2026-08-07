@@ -5,13 +5,13 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport42;
+namespace Plugin\SalesReport44;
 
 use Eccube\Common\EccubeNav;
 
@@ -20,12 +20,12 @@ class SalesReportNav implements EccubeNav
     /**
      * {@inheritdoc}
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public static function getNav()
+    public static function getNav(): array
     {
         return [
-            'SalesReport42' => [
+            'SalesReport44' => [
                 'name' => 'sales_report.admin.nav.001',
                 'icon' => 'fa-chart-bar',
                 'children' => [

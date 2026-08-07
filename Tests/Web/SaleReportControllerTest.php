@@ -5,16 +5,17 @@
  *
  * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.ec-cube.co.jp/
+ * https://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
-namespace Plugin\SalesReport42\Tests\Web;
+namespace Plugin\SalesReport44\Tests\Web;
 
 use Eccube\Entity\TaxRule;
 use Eccube\Repository\TaxRuleRepository;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Class SaleReportControllerTest.
@@ -36,12 +37,11 @@ class SaleReportControllerTest extends SaleReportCommon
     /**
      * test routing admin sale report.
      *
-     *
      * @param string $type
      * @param string $expected
-     * @dataProvider dataRoutingProvider
      */
-    public function testRouting($type, $expected)
+    #[DataProvider('dataRoutingProvider')]
+    public function testRouting(string $type, string $expected): void
     {
         $crawler = $this->client->request('GET', $this->generateUrl('sales_report_admin'.$type));
         $this->assertTrue($this->client->getResponse()->isSuccessful());
@@ -52,9 +52,9 @@ class SaleReportControllerTest extends SaleReportCommon
      * test display today as default.
      *
      * @param string $type
-     * @dataProvider dataRoutingProvider
      */
-    public function testDisplayTodayAsDefault($type)
+    #[DataProvider('dataRoutingProvider')]
+    public function testDisplayTodayAsDefault(string $type): void
     {
         $current = new \DateTime();
         $crawler = $this->client->request('GET', $this->generateUrl('sales_report_admin'.$type));
@@ -65,9 +65,9 @@ class SaleReportControllerTest extends SaleReportCommon
     /**
      * data routing provider.
      *
-     * @return array
+     * @return array<int, array<int, string>>
      */
-    public function dataRoutingProvider()
+    public static function dataRoutingProvider(): array
     {
         return [
             ['_term', '期間別集計'],
@@ -81,11 +81,11 @@ class SaleReportControllerTest extends SaleReportCommon
      *
      * @param string $type
      * @param string $termType
-     * @param array  $unit
+     * @param string|null $unit
      * @param string $expected
-     * @dataProvider dataReportProvider
      */
-    public function testSaleReportAll($type, $termType, $unit, $expected)
+    #[DataProvider('dataReportProvider')]
+    public function testSaleReportAll(string $type, string $termType, ?string $unit, string $expected): void
     {
         $this->createOrderByCustomer(5);
 
@@ -117,9 +117,9 @@ class SaleReportControllerTest extends SaleReportCommon
      *
      * @param string $type
      * @param string $termType
-     * @dataProvider dataProductReportProvider
      */
-    public function testProductReportSortByOrderMoney($type, $termType)
+    #[DataProvider('dataProductReportProvider')]
+    public function testProductReportSortByOrderMoney(string $type, string $termType): void
     {
         $i = 0;
         $j = 0;
@@ -141,7 +141,7 @@ class SaleReportControllerTest extends SaleReportCommon
         }
         $crawler = $this->client->request('POST', $this->generateUrl('sales_report_admin'.$type), ['sales_report' => $arrSearch]);
         $moneyElement = $crawler->filter('tr .d-none');
-        //get only total money. don't get product price
+        // get only total money. don't get product price
         foreach ($moneyElement as $domElement) {
             if ($i % 2 != 0) {
                 $orderMoney[$j] = $domElement->nodeValue;
@@ -149,7 +149,7 @@ class SaleReportControllerTest extends SaleReportCommon
             }
             ++$i;
         }
-        //check array is order by desc or not
+        // check array is order by desc or not
         for ($i = 0; $i < (sizeof($orderMoney) - 1); ++$i) {
             if ($orderMoney[$i] >= $orderMoney[$i + 1]) {
                 $flag = true;
@@ -165,11 +165,11 @@ class SaleReportControllerTest extends SaleReportCommon
      *
      * @param string $type
      * @param string $termType
-     * @param array  $unit
+     * @param string|null $unit
      * @param string $expected
-     * @dataProvider dataReportProvider
      */
-    public function testProductDelete($type, $termType, $unit, $expected)
+    #[DataProvider('dataReportProvider')]
+    public function testProductDelete(string $type, string $termType, ?string $unit, string $expected): void
     {
         $this->createOrderByCustomer(5);
 
@@ -199,9 +199,9 @@ class SaleReportControllerTest extends SaleReportCommon
      *
      * @param string $type
      * @param string $termType
-     * @dataProvider dataProductReportProvider
      */
-    public function testChangeOrderDetail($type, $termType)
+    #[DataProvider('dataProductReportProvider')]
+    public function testChangeOrderDetail(string $type, string $termType): void
     {
         $i = 0;
         $orderMoney = 0;
@@ -223,24 +223,53 @@ class SaleReportControllerTest extends SaleReportCommon
         }
         $crawler = $this->client->request('POST', $this->generateUrl('sales_report_admin'.$type), ['sales_report' => $arrSearch]);
         $moneyElement = $crawler->filter('tr .d-none');
-        //get only total money. don't get product price
+        // get only total money. don't get product price
         foreach ($moneyElement as $domElement) {
             $orderMoney += $domElement->nodeValue;
             ++$i;
         }
 
-        $tax = $TaxRule->getTaxRate() / 100;
-        $this->expected = 500 * 5 * (1 + $tax);
-        $this->actual = $orderMoney;
+        $tax = (float) $TaxRule->getTaxRate() / 100;
+        // verify() は assertSame（厳格比較）のため int/float 型を揃える。金額（円）は整数値。
+        $this->expected = (int) round(500 * 5 * (1 + $tax));
+        $this->actual = (int) $orderMoney;
         $this->verify();
+    }
+
+    /**
+     * 画面をまたぐ操作で期間別 CSV の出力が失敗しないことのテスト.
+     *
+     * 商品別/年代別の画面は集計単位 (unit) のフォーム項目を持たないため、
+     * 3 画面で共通のセッションキーに unit を含まない検索条件が保存される。
+     * その状態で期間別の CSV を出力しても集計単位の既定値で処理が続くことを確認する。
+     */
+    public function testExportTermAfterOtherReport(): void
+    {
+        $this->createOrderByCustomer(5);
+        $current = new \DateTime();
+
+        // 商品別集計を実行し、unit を含まない検索条件をセッションに保存させる
+        $this->client->request('POST', $this->generateUrl('sales_report_admin_product'), [
+            'sales_report' => [
+                'term_type' => 'term',
+                'term_start' => (clone $current)->modify('-15 days')->format('Y-m-d'),
+                'term_end' => (clone $current)->modify('+15 days')->format('Y-m-d'),
+                '_token' => 'dummy',
+            ],
+        ]);
+        $this->assertTrue($this->client->getResponse()->isSuccessful());
+
+        // 続けて期間別の CSV をダウンロードする
+        $this->client->request('POST', $this->generateUrl('sales_report_admin_export', ['type' => 'term']));
+        $this->assertTrue($this->client->getResponse()->isSuccessful());
     }
 
     /**
      * data report provider.
      *
-     * @return array
+     * @return array<int, array<int, mixed>>
      */
-    public function dataReportProvider()
+    public static function dataReportProvider(): array
     {
         return [
             ['_term', 'monthly', 'byDay', '購入平均'],
@@ -261,9 +290,9 @@ class SaleReportControllerTest extends SaleReportCommon
     /**
      * product report data provider.
      *
-     * @return array
+     * @return array<int, array<int, string>>
      */
-    public function dataProductReportProvider()
+    public static function dataProductReportProvider(): array
     {
         return [
             ['_product', 'monthly'],
